@@ -461,7 +461,7 @@
                     </div>
 
                     <div id="batchNoticeBox" class="bg-blue-50/80 border border-blue-200 text-blue-800 rounded-xl px-4 py-2.5 text-xs flex items-center justify-between">
-                        <span>💡 表格支持跨站点混合核算，汇率与目标利润率自动联动左侧配置。点击每行右侧「加载」可回填至单品计算器。</span>
+                        <span>💡 表格支持跨站点混合核算，汇率与目标利润率自动联动左侧配置。点击每行右侧「加载」可回填至单品计算器。数据自动同步 LocalStorage 保存。</span>
                     </div>
 
                     <div class="overflow-x-auto border border-slate-200 rounded-xl">
@@ -503,7 +503,7 @@
                                 <h2 class="text-base font-bold text-slate-900">🇪🇺 欧洲各国独立平台申报供货价与利润分析</h2>
                             </div>
                             <p class="text-xs text-slate-500 mt-1">
-                                支持针对欧洲各国家单独设置申报供货价（可切换 EUR / CNY）、平台运费补贴与本土尾程费，支持国家列表自定义增删、实时汇率换算、LocalStorage 自动保存及 JSON 配置文件导入导出。
+                                支持针对欧洲各国家单独设置申报供货价（可切换 EUR / CNY）、平台运费补贴（EUR €）与本土尾程费，支持国家列表自定义增删、实时汇率换算、LocalStorage 自动保存及 JSON 配置文件导入导出。
                             </p>
                         </div>
                         <div class="flex flex-wrap items-center gap-2">
@@ -555,7 +555,7 @@
                     </div>
 
                     <div id="euNoticeBox" class="bg-indigo-50/80 border border-indigo-200 text-indigo-900 rounded-xl px-4 py-2.5 text-xs flex items-center justify-between">
-                        <span>💡 修改下表中各国家的申报供货价、平台运费补贴（支持切换 欧元 EUR / 人民币 CNY）或尾程费，数据将自动保存至浏览器 LocalStorage 并实时计算毛利与利润率。</span>
+                        <span>💡 修改下表中各国家的申报供货价（支持 EUR / CNY）、平台运费补贴 (EUR €) 或尾程费，数据将自动保存至浏览器 LocalStorage 并实时计算毛利与利润率。</span>
                         <span id="euStorageStatus" class="text-[11px] font-semibold text-emerald-600 bg-white px-2 py-0.5 rounded border border-emerald-200">✓ 已开启 LocalStorage 自动同步</span>
                     </div>
 
@@ -568,7 +568,7 @@
                                     <th class="py-3 px-3">币种设置</th>
                                     <th class="py-3 px-3">单件尾程费 (EUR €)</th>
                                     <th class="py-3 px-3">独立平台申报供货价</th>
-                                    <th class="py-3 px-3">平台运费补贴</th>
+                                    <th class="py-3 px-3">平台运费补贴 (EUR €)</th>
                                     <th class="py-3 px-3 text-right">单件总成本 (CNY)</th>
                                     <th class="py-3 px-3 text-right">单件毛利 (CNY)</th>
                                     <th class="py-3 px-3 text-right">单件毛利 (EUR €)</th>
@@ -645,11 +645,13 @@
 
         const EU_STORAGE_KEY = "temu_eu_country_prices";
         const EU_RATE_STORAGE_KEY = "temu_eu_exchange_rate";
+        const BATCH_STORAGE_KEY = "temu_batch_sku_items";
+
         let euCountryPrices = [];
         let euExchangeRate = 7.80;
 
         // 批量清单默认示例数据
-        let batchItems = [
+        const DEFAULT_BATCH_ITEMS = [
             {
                 sku: "HOME-CHAIR-01",
                 siteCode: "US",
@@ -688,7 +690,35 @@
             }
         ];
 
+        let batchItems = JSON.parse(JSON.stringify(DEFAULT_BATCH_ITEMS));
         let latestBatchResults = [];
+
+        /**
+         * 批量 SKU 清单 LocalStorage 加载与保存
+         */
+        function loadBatchItemsFromStorage() {
+            try {
+                const stored = localStorage.getItem(BATCH_STORAGE_KEY);
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        batchItems = parsed;
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.warn("读取 LocalStorage 批量 SKU 列表失败:", e);
+            }
+            batchItems = JSON.parse(JSON.stringify(DEFAULT_BATCH_ITEMS));
+        }
+
+        function saveBatchItemsToStorage() {
+            try {
+                localStorage.setItem(BATCH_STORAGE_KEY, JSON.stringify(batchItems));
+            } catch (e) {
+                console.warn("写入 LocalStorage 批量 SKU 列表失败:", e);
+            }
+        }
 
         /**
          * 币种转换辅助函数：将输入金额统一折算为 CNY
@@ -1159,6 +1189,7 @@
         /**
          * 渲染欧洲各国独立表单与利润计算对比表
          * 支持在打字时就地更新 DOM 节点，避免整行重绘导致输入焦点丢失
+         * 统一运费补贴为 EUR (€)：若申报价切换为 CNY，补贴自动按照汇率换算后参与计算
          */
         function renderEuCountryTable(forceRebuild = false) {
             const tbody = document.getElementById("euCountryTableBody");
@@ -1178,6 +1209,9 @@
                     const declareCurr = c.declareCurr || "EUR";
                     const isCny = declareCurr === "CNY";
 
+                    // 运费补贴固定为 EUR €：若用户以 CNY 申报，则补贴按 eurRate 折算为 CNY 传入引擎
+                    const effectiveSubsidy = isCny ? (c.subsidy || 0) * eurRate : (c.subsidy || 0);
+
                     const res = calculateItemProfit({
                         sku: `EU-${c.code}`,
                         siteCode: "DE",
@@ -1189,7 +1223,7 @@
                         lastMileCurr: "LOCAL",
                         declarePrice: c.declarePrice,
                         declareCurr: isCny ? "CNY" : "LOCAL",
-                        subsidy: c.subsidy || 0,
+                        subsidy: effectiveSubsidy,
                         lossRate: lossRatePct / 100.0,
                         targetMargin: targetMarginPct / 100.0
                     });
@@ -1237,7 +1271,7 @@
                             </td>
                             <td class="py-2.5 px-3">
                                 <div class="relative w-28">
-                                    <span data-field="subsidySymbol" class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-emerald-600 font-bold">${currSymbol}</span>
+                                    <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-emerald-600 font-bold">€</span>
                                     <input type="number" data-field="subsidy" value="${(c.subsidy || 0).toFixed(2)}" step="0.5" min="0" oninput="updateEuCountryField(${idx}, 'subsidy', this.value)" class="w-full pl-7 pr-2 py-1 text-xs font-bold text-emerald-700 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                                 </div>
                             </td>
@@ -1264,6 +1298,8 @@
                     const declareCurr = c.declareCurr || "EUR";
                     const isCny = declareCurr === "CNY";
 
+                    const effectiveSubsidy = isCny ? (c.subsidy || 0) * eurRate : (c.subsidy || 0);
+
                     const res = calculateItemProfit({
                         sku: `EU-${c.code}`,
                         siteCode: "DE",
@@ -1275,7 +1311,7 @@
                         lastMileCurr: "LOCAL",
                         declarePrice: c.declarePrice,
                         declareCurr: isCny ? "CNY" : "LOCAL",
-                        subsidy: c.subsidy || 0,
+                        subsidy: effectiveSubsidy,
                         lossRate: lossRatePct / 100.0,
                         targetMargin: targetMarginPct / 100.0
                     });
@@ -1302,9 +1338,6 @@
 
                     const decSymEl = row.querySelector('[data-field="declareSymbol"]');
                     if (decSymEl) decSymEl.textContent = currSymbol;
-
-                    const subSymEl = row.querySelector('[data-field="subsidySymbol"]');
-                    if (subSymEl) subSymEl.textContent = currSymbol;
 
                     const totalCostEl = row.querySelector('[data-field="totalCostCny"]');
                     if (totalCostEl) totalCostEl.textContent = `¥${res.totalCostCny.toFixed(2)}`;
@@ -1464,6 +1497,7 @@
                 subsidy
             });
 
+            saveBatchItemsToStorage();
             recalcAll();
             switchTab('batch');
         }
@@ -1488,6 +1522,7 @@
 
         function removeBatchItem(index) {
             batchItems.splice(index, 1);
+            saveBatchItemsToStorage();
             recalcAll();
         }
 
@@ -1582,6 +1617,7 @@
                 }
                 if (parsed.length > 0) {
                     batchItems = parsed;
+                    saveBatchItemsToStorage();
                     const box = document.getElementById('batchNoticeBox');
                     box.className = "bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl px-4 py-2.5 text-xs flex items-center justify-between";
                     box.innerHTML = `<span>✅ 已成功导入 <b>${parsed.length}</b> 个 SKU 的三项成本数据并完成利润核算！</span>`;
@@ -1634,6 +1670,7 @@
         }
 
         window.onload = function() {
+            loadBatchItemsFromStorage();
             loadEuPricesFromStorage();
             calcHelperFirstLeg();
             recalcAll();
