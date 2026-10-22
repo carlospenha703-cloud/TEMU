@@ -195,7 +195,7 @@
                             <h2 class="text-base font-bold text-slate-900">单件成本构成（采购+头程+尾程+出库+仓储）与申报价</h2>
                         </div>
                         <div class="flex items-center gap-2">
-                            <input type="text" id="skuNameInput" value="HOME-CHAIR-01" placeholder="输入SKU编号或品名" class="rounded-xl border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500 w-44">
+                            <input type="text" id="skuNameInput" value="HOME-CHAIR-01" placeholder="输入项目/SKU名称" class="rounded-xl border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500 w-48">
                             <button onclick="addCurrentSkuToList()" class="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition flex items-center gap-1 shadow-sm">
                                 <span>➕</span> 保存至对比清单
                             </button>
@@ -317,7 +317,7 @@
                                 <input type="number" id="declarePriceInput" value="14.99" step="0.5" min="0.01" oninput="recalcAll()" class="w-full rounded-xl border border-orange-400 bg-white px-3 py-1.5 text-base font-bold text-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500">
                             </div>
                             <div class="flex items-center justify-between pt-0.5">
-                                <span class="text-[11px] text-slate-600 font-medium">+ 平台运费补贴:</span>
+                                <span class="text-[11px] text-slate-600 font-medium">+ 平台运费补贴 (<span id="singleSubsidySymbol" class="font-bold text-emerald-700">$</span> 本币):</span>
                                 <input type="number" id="subsidyInput" value="0.00" step="0.5" min="0" oninput="recalcAll()" class="w-20 rounded-lg border border-slate-300 bg-white px-2 py-0.5 text-xs font-bold text-emerald-700 text-right">
                             </div>
                         </div>
@@ -485,7 +485,7 @@
                         <div>
                             <h2 class="text-base font-bold text-slate-900">📋 批量 SKU 极简核价表（采购 + 头程 + 尾程 + 出库 + 仓储）</h2>
                             <p class="text-xs text-slate-500 mt-0.5">
-                                可在「单品核价」点击保存加入此表，也可直接下载 CSV 模板批量导入几百个 SKU 一键算清包含出库费与仓储费的总成本与建议申报价。
+                                可在「单品核价」或「欧洲多国」点击保存加入此表。欧洲多国项目默认精简展示德国 (DE) 站点数据，点击「查看欧洲多国详情」可加载全套多国配置。
                             </p>
                         </div>
                         <div class="flex flex-wrap items-center gap-2">
@@ -503,14 +503,14 @@
                     </div>
 
                     <div id="batchNoticeBox" class="bg-blue-50/80 border border-blue-200 text-blue-800 rounded-xl px-4 py-2.5 text-xs flex items-center justify-between">
-                        <span>💡 表格支持跨站点混合核算，包含采购、头程、尾程、出库费与仓储费。汇率与目标利润率自动联动左侧配置。数据自动同步 LocalStorage 保存。</span>
+                        <span>💡 表格支持跨站点混合核算。对于欧洲多国项目，默认呈现德国(DE)基准数据。所有项目与多国配置自动同调同步存入 LocalStorage。</span>
                     </div>
 
                     <div class="overflow-x-auto border border-slate-200 rounded-xl">
                         <table class="w-full text-left text-xs whitespace-nowrap">
                             <thead>
                                 <tr class="bg-slate-100 text-slate-600 border-b border-slate-200 font-semibold">
-                                    <th class="py-2.5 px-3">SKU</th>
+                                    <th class="py-2.5 px-3">项目 / SKU</th>
                                     <th class="py-2.5 px-2.5">站点</th>
                                     <th class="py-2.5 px-2.5 text-right">采购成本(¥)</th>
                                     <th class="py-2.5 px-2.5 text-right">单件头程</th>
@@ -547,18 +547,22 @@
                                 <h2 class="text-base font-bold text-slate-900">🇪🇺 欧洲各国独立平台申报供货价与利润分析</h2>
                             </div>
                             <p class="text-xs text-slate-500 mt-1">
-                                支持针对欧洲各国家单独设置申报供货价（可切换 EUR / CNY）、平台运费补贴（EUR €）、本土尾程费、出库费（EUR €）及仓储费（EUR €），支持国家列表自定义增删、实时汇率换算、LocalStorage 自动保存及 JSON 配置文件导入导出。
+                                支持针对欧洲各国家单独设置申报供货价（可切换 EUR / CNY）、平台运费补贴（EUR €）、本土尾程费、出库费（EUR €）及仓储费（EUR €），支持保存为项目与批量清单多模块同调。
                             </p>
                         </div>
                         <div class="flex flex-wrap items-center gap-2">
-                            <button onclick="exportEuPricesJson()" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition shadow-sm flex items-center gap-1">
-                                <span>📥</span> 导出供货价 JSON
+                            <input type="text" id="euProjectNameInput" value="HOME-CHAIR-01" placeholder="输入项目/SKU名称" class="rounded-xl border border-indigo-300 px-3 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-48">
+                            <button onclick="saveEuProject()" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition shadow-sm flex items-center gap-1">
+                                <span>💾</span> 保存为项目
                             </button>
-                            <label class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-900 text-white transition cursor-pointer shadow-sm flex items-center gap-1">
-                                <span>📤</span> 导入 JSON 配置
+                            <button onclick="exportEuPricesJson()" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-900 text-white transition shadow-sm flex items-center gap-1">
+                                <span>📥</span> 导出 JSON
+                            </button>
+                            <label class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer shadow-sm flex items-center gap-1">
+                                <span>📤</span> 导入 JSON
                                 <input type="file" id="euJsonUploadInput" accept=".json" onchange="handleEuPricesJsonUpload(event)" class="hidden">
                             </label>
-                            <button onclick="resetEuPricesToDefault()" class="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-600 transition">
+                            <button onclick="resetEuPricesToDefault()" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-600 transition">
                                 🔄 重置默认
                             </button>
                         </div>
@@ -599,7 +603,7 @@
                     </div>
 
                     <div id="euNoticeBox" class="bg-indigo-50/80 border border-indigo-200 text-indigo-900 rounded-xl px-4 py-2.5 text-xs flex items-center justify-between">
-                        <span>💡 修改下表中各国家的申报供货价（支持 EUR / CNY）、平台运费补贴 (EUR €)、尾程费、出库费及仓储费，数据自动保存至 LocalStorage。系统将在折算为人民币后再参与整体利润计算。</span>
+                        <span>💡 修改下表中各国家的申报供货价（支持 EUR / CNY）、平台运费补贴 (EUR €)、尾程费、出库费及仓储费。点击上方「保存为项目」可将数据实时同调合并至「批量 SKU 清单」。</span>
                         <span id="euStorageStatus" class="text-[11px] font-semibold text-emerald-600 bg-white px-2 py-0.5 rounded border border-emerald-200">✓ 已开启 LocalStorage 自动同步</span>
                     </div>
 
@@ -703,19 +707,20 @@
         const DEFAULT_BATCH_ITEMS = [
             {
                 sku: "HOME-CHAIR-01",
-                siteCode: "US",
+                siteCode: "DE",
                 purchaseCostCny: 35.0,
                 firstLegCost: 8.0,
                 firstLegCurr: "CNY",
-                lastMileCost: 4.50,
+                lastMileCost: 4.20,
                 lastMileCurr: "LOCAL",
                 outboundCost: 0.80,
                 outboundCurr: "LOCAL",
                 storageCost: 0.30,
                 storageCurr: "LOCAL",
-                declarePrice: 14.99,
+                declarePrice: 13.99,
                 declareCurr: "LOCAL",
-                subsidy: 0.00
+                subsidy: 0.00,
+                euCountries: JSON.parse(JSON.stringify(DEFAULT_EU_COUNTRY_CONFIGS))
             },
             {
                 sku: "KITCHEN-RACK-02",
@@ -731,7 +736,8 @@
                 storageCurr: "LOCAL",
                 declarePrice: 13.50,
                 declareCurr: "LOCAL",
-                subsidy: 0.00
+                subsidy: 0.00,
+                euCountries: JSON.parse(JSON.stringify(DEFAULT_EU_COUNTRY_CONFIGS))
             },
             {
                 sku: "PET-BED-03",
@@ -777,7 +783,8 @@
                             storageCurr: item.storageCurr || "LOCAL",
                             declarePrice: parseFloat(item.declarePrice) || 0,
                             declareCurr: item.declareCurr || "LOCAL",
-                            subsidy: parseFloat(item.subsidy) || 0
+                            subsidy: parseFloat(item.subsidy) || 0,
+                            euCountries: Array.isArray(item.euCountries) ? item.euCountries : null
                         }));
                         return;
                     }
@@ -816,7 +823,7 @@
                 outboundCost, outboundCurr,
                 storageCost, storageCurr,
                 declarePrice, declareCurr,
-                subsidy,
+                subsidy, subsidyCurr,
                 lossRate, targetMargin
             } = params;
 
@@ -834,7 +841,7 @@
 
             // 2. 收入项折算为 CNY
             const declareCny = toCny(declarePrice, declareCurr, safeRate);
-            const subsidyCny = toCny(subsidy, declareCurr, safeRate);
+            const subsidyCny = toCny(subsidy, subsidyCurr || declareCurr, safeRate);
 
             const grossRevCny = declareCny + subsidyCny;
             const retention = Math.max(1.0 - lossRate, 0.0001);
@@ -906,6 +913,7 @@
             const cfg = SITE_CONFIGS[code];
             document.getElementById('exchangeRate').value = cfg.rate;
             document.getElementById('rateLabelText').textContent = `1 ${cfg.currency} 兑多少 CNY`;
+            document.getElementById('singleSubsidySymbol').textContent = cfg.symbol;
             recalcAll();
         }
 
@@ -919,6 +927,8 @@
             document.getElementById('outboundCostInput').value = cfg.sampleOutbound || 0.80;
             document.getElementById('storageCostInput').value = cfg.sampleStorage || 0.30;
             document.getElementById('declarePriceInput').value = cfg.sampleDeclare;
+            document.getElementById('subsidyInput').value = 0.00;
+            document.getElementById('singleSubsidySymbol').textContent = cfg.symbol;
             recalcAll();
         }
 
@@ -960,12 +970,13 @@
 
             document.getElementById('targetMarginBadge').textContent = `${targetMarginPct.toFixed(0)}%`;
             document.getElementById('lossRateBadge').textContent = `${lossRatePct.toFixed(1)}%`;
+            document.getElementById('singleSubsidySymbol').textContent = sym;
 
             document.getElementById('headerSummary').textContent =
                 `当前站点：${siteCfg.name} (${siteCfg.code}) ｜ 站点本币：${curr} (${sym}) ｜ 核算汇率：1 ${curr} = ${rate} CNY`;
 
             // 读取各项成本与申报价
-            const sku = document.getElementById('skuNameInput').value.trim() || "SKU-001";
+            const sku = document.getElementById('skuNameInput').value.trim() || "HOME-CHAIR-01";
             const purchaseCostCny = parseFloat(document.getElementById('purchaseCostInput').value) || 0;
 
             const firstLegCost = parseFloat(document.getElementById('firstLegCostInput').value) || 0;
@@ -1000,6 +1011,7 @@
                 declarePrice,
                 declareCurr,
                 subsidy,
+                subsidyCurr: "LOCAL", // 运费补贴统一为站点本币
                 lossRate: lossRatePct / 100.0,
                 targetMargin: targetMarginPct / 100.0
             });
@@ -1625,9 +1637,11 @@
             }).join('');
         }
 
-        // 将当前单品加入对比清单
+        /**
+         * 多模块数据同调逻辑：根据 SKU/项目名称 合并或插入记录
+         */
         function addCurrentSkuToList() {
-            const sku = document.getElementById('skuNameInput').value.trim() || `SKU-${batchItems.length + 1}`;
+            const sku = document.getElementById('skuNameInput').value.trim() || `PROJECT-${batchItems.length + 1}`;
             const siteCode = document.getElementById('siteSelect').value;
             const purchaseCostCny = parseFloat(document.getElementById('purchaseCostInput').value) || 0;
             const firstLegCost = parseFloat(document.getElementById('firstLegCostInput').value) || 0;
@@ -1642,19 +1656,107 @@
             const declareCurr = document.getElementById('declareCurrSelect').value;
             const subsidy = parseFloat(document.getElementById('subsidyInput').value) || 0;
 
-            batchItems.unshift({
+            const existingIdx = batchItems.findIndex(it => it.sku === sku);
+            const newItemData = {
                 sku, siteCode, purchaseCostCny,
                 firstLegCost, firstLegCurr,
                 lastMileCost, lastMileCurr,
                 outboundCost, outboundCurr,
                 storageCost, storageCurr,
                 declarePrice, declareCurr,
-                subsidy
-            });
+                subsidy,
+                euCountries: siteCode === "DE" ? JSON.parse(JSON.stringify(euCountryPrices)) : null
+            };
+
+            if (existingIdx >= 0) {
+                // 合并数据
+                batchItems[existingIdx] = {
+                    ...batchItems[existingIdx],
+                    ...newItemData,
+                    euCountries: batchItems[existingIdx].euCountries || newItemData.euCountries
+                };
+            } else {
+                batchItems.unshift(newItemData);
+            }
 
             saveBatchItemsToStorage();
             recalcAll();
             switchTab('batch');
+        }
+
+        /**
+         * 欧洲各国模块：“保存为项目”
+         */
+        function saveEuProject() {
+            const projName = document.getElementById('euProjectNameInput').value.trim() || `EU-PROJECT-${batchItems.length + 1}`;
+            const purchaseCostCny = parseFloat(document.getElementById('purchaseCostInput').value) || 0;
+            const firstLegCost = parseFloat(document.getElementById('firstLegCostInput').value) || 0;
+            const firstLegCurr = document.getElementById('firstLegCurrSelect').value;
+
+            // 寻找德国 DE 数据作为默认显示项
+            const deCfg = euCountryPrices.find(c => c.code === "DE") || euCountryPrices[0] || {
+                lastMileCost: 4.20, outboundCost: 0.80, storageCost: 0.30, declarePrice: 13.99, subsidy: 0.00
+            };
+
+            const newItemData = {
+                sku: projName,
+                siteCode: "DE",
+                purchaseCostCny,
+                firstLegCost,
+                firstLegCurr,
+                lastMileCost: deCfg.lastMileCost || 4.20,
+                lastMileCurr: "LOCAL",
+                outboundCost: deCfg.outboundCost || 0.80,
+                outboundCurr: "LOCAL",
+                storageCost: deCfg.storageCost || 0.30,
+                storageCurr: "LOCAL",
+                declarePrice: deCfg.declarePrice || 13.99,
+                declareCurr: deCfg.declareCurr || "LOCAL",
+                subsidy: deCfg.subsidy || 0.00,
+                euCountries: JSON.parse(JSON.stringify(euCountryPrices))
+            };
+
+            const existingIdx = batchItems.findIndex(it => it.sku === projName);
+            if (existingIdx >= 0) {
+                batchItems[existingIdx] = {
+                    ...batchItems[existingIdx],
+                    ...newItemData
+                };
+            } else {
+                batchItems.unshift(newItemData);
+            }
+
+            saveBatchItemsToStorage();
+            recalcAll();
+
+            const statusEl = document.getElementById("euStorageStatus");
+            if (statusEl) {
+                statusEl.textContent = `✓ 已成功合并项目 [${projName}] 至批量清单！`;
+                statusEl.className = "text-[11px] font-semibold text-emerald-600 bg-white px-2 py-0.5 rounded border border-emerald-200";
+            }
+
+            switchTab('batch');
+        }
+
+        /**
+         * 从批量清单将全套欧洲多国数据重载回欧洲模块
+         */
+        function loadEuCountriesToModule(index) {
+            const item = batchItems[index];
+            if (!item) return;
+
+            document.getElementById('euProjectNameInput').value = item.sku;
+            if (Array.isArray(item.euCountries) && item.euCountries.length > 0) {
+                euCountryPrices = JSON.parse(JSON.stringify(item.euCountries));
+            } else {
+                // 如果是普通单品被重载回欧洲模块，以其基本硬成本初始化默认欧洲配置
+                euCountryPrices = JSON.parse(JSON.stringify(DEFAULT_EU_COUNTRY_CONFIGS));
+            }
+
+            saveEuPricesToStorage();
+            renderEuCountryTable(true);
+            recalcAll();
+            switchTab('eu');
         }
 
         function loadBatchItemToMain(index) {
@@ -1685,7 +1787,7 @@
             recalcAll();
         }
 
-        // 渲染批量 SKU 表格
+        // 渲染批量 SKU 表格（默认展示德国 DE 数据，提供加载至多国模块按钮）
         function renderBatchTable(targetMargin, lossRate) {
             const activeSiteCode = document.getElementById('siteSelect').value;
             const activeRate = parseFloat(document.getElementById('exchangeRate').value) || 7.2;
@@ -1713,9 +1815,12 @@
                 const decText = r.raw.declareCurr === "CNY" ? `¥${r.raw.declarePrice.toFixed(2)}` : `${sym}${r.raw.declarePrice.toFixed(2)}`;
                 const subText = r.raw.subsidy > 0 ? `${sym}${r.raw.subsidy.toFixed(2)}` : "-";
 
+                const isEuProject = Array.isArray(r.raw.euCountries) && r.raw.euCountries.length > 0;
+                const euBadge = isEuProject ? `<span class="ml-1 text-[10px] font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200">🇪🇺 欧洲多国</span>` : '';
+
                 return `
                     <tr class="hover:bg-slate-50">
-                        <td class="py-2.5 px-3 font-semibold text-slate-900">${r.sku}</td>
+                        <td class="py-2.5 px-3 font-semibold text-slate-900">${r.sku}${euBadge}</td>
                         <td class="py-2.5 px-2.5"><span class="px-2 py-0.5 rounded bg-slate-100 font-semibold">${r.siteCode} (${r.cfg.currency})</span></td>
                         <td class="py-2.5 px-2.5 text-right">¥${r.cPurchaseCny.toFixed(2)}</td>
                         <td class="py-2.5 px-2.5 text-right">${firstText}</td>
@@ -1732,7 +1837,8 @@
                         <td class="py-2.5 px-2.5 text-right">${sym}${r.breakevenDeclareLocal.toFixed(2)}</td>
                         <td class="py-2.5 px-2.5 text-right font-bold text-orange-600 bg-orange-50/40">${sym}${r.targetDeclareLocal.toFixed(2)} (¥${r.targetDeclareCny.toFixed(1)})</td>
                         <td class="py-2.5 px-3 text-center space-x-1">
-                            <button onclick="loadBatchItemToMain(${r.idx})" class="px-2 py-1 rounded bg-orange-50 text-orange-700 hover:bg-orange-100 font-semibold">加载</button>
+                            ${isEuProject ? `<button onclick="loadEuCountriesToModule(${r.idx})" class="px-2 py-1 rounded bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-semibold">查看欧洲多国详情</button>` : ''}
+                            <button onclick="loadBatchItemToMain(${r.idx})" class="px-2 py-1 rounded bg-orange-50 text-orange-700 hover:bg-orange-100 font-semibold">单品加载</button>
                             <button onclick="removeBatchItem(${r.idx})" class="px-2 py-1 rounded bg-slate-100 text-slate-500 hover:bg-red-50 hover:text-red-600">删除</button>
                         </td>
                     </tr>
@@ -1744,7 +1850,7 @@
         function downloadBatchTemplate() {
             const headers = ["SKU,站点代码(US/DE/UK/CA/AU/JP),采购成本(CNY),头程单件费用,头程币种(CNY或LOCAL),站点单件尾程费,尾程币种(LOCAL或CNY),单件出库费,出库币种(LOCAL或CNY),单件仓储费,仓储币种(LOCAL或CNY),平台申报供货价,申报币种(LOCAL或CNY),平台运费补贴"];
             const samples = [
-                "HOME-CHAIR-01,US,35.0,8.0,CNY,4.50,LOCAL,0.80,LOCAL,0.30,14.99,LOCAL,0.00",
+                "HOME-CHAIR-01,DE,35.0,8.0,CNY,4.20,LOCAL,0.80,LOCAL,0.30,13.99,LOCAL,0.00",
                 "KITCHEN-RACK-02,DE,28.0,6.5,CNY,4.20,LOCAL,0.80,LOCAL,0.30,13.50,LOCAL,0.00",
                 "PET-BED-03,UK,22.0,5.0,CNY,3.40,LOCAL,0.70,LOCAL,0.25,10.99,LOCAL,1.50"
             ];
@@ -1766,7 +1872,6 @@
                     if (cols.length < 8) continue;
                     const siteCode = (cols[1] || "US").trim().toUpperCase();
 
-                    // 兼容旧格式（10列）与新格式（14列）
                     let outboundCost = 0, outboundCurr = "LOCAL", storageCost = 0, storageCurr = "LOCAL";
                     let declarePrice = 0, declareCurr = "LOCAL", subsidy = 0;
 
@@ -1795,7 +1900,8 @@
                         outboundCost, outboundCurr,
                         storageCost, storageCurr,
                         declarePrice, declareCurr,
-                        subsidy
+                        subsidy,
+                        euCountries: siteCode === "DE" ? JSON.parse(JSON.stringify(DEFAULT_EU_COUNTRY_CONFIGS)) : null
                     });
                 }
                 if (parsed.length > 0) {
