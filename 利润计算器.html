@@ -503,7 +503,7 @@
                                 <h2 class="text-base font-bold text-slate-900">🇪🇺 欧洲各国独立平台申报供货价与利润分析</h2>
                             </div>
                             <p class="text-xs text-slate-500 mt-1">
-                                TEMU 欧洲大区支持针对德国、法国、意大利、西班牙、荷兰、波兰、比利时、奥地利等站点单独设置申报供货价与本土尾程费，支持 LocalStorage 实时自动保存及 JSON 配置导入与导出。
+                                支持针对欧洲各国家单独设置申报供货价（可切换 EUR / CNY）与本土尾程费，支持国家列表自定义增删、实时汇率换算、LocalStorage 自动保存及 JSON 配置文件导入导出。
                             </p>
                         </div>
                         <div class="flex flex-wrap items-center gap-2">
@@ -520,8 +520,42 @@
                         </div>
                     </div>
 
+                    <!-- 汇率设置与添加国家工具栏 -->
+                    <div class="bg-indigo-50/50 border border-indigo-100 rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <label class="text-xs font-bold text-indigo-950 flex items-center gap-1">
+                                <span>💱</span> 欧洲欧元核算汇率:
+                            </label>
+                            <div class="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-indigo-200">
+                                <span class="text-xs font-semibold text-slate-600">1 EUR =</span>
+                                <input type="number" id="euExchangeRateInput" value="7.80" step="0.05" min="0.01" oninput="onEuRateChange()" class="w-16 text-xs font-bold text-indigo-700 focus:outline-none">
+                                <span class="text-xs font-semibold text-slate-600">CNY</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <select id="addCountrySelect" class="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="DE|德国 🇩🇪|EUR">德国 🇩🇪 (DE)</option>
+                                <option value="FR|法国 🇫🇷|EUR">法国 🇫🇷 (FR)</option>
+                                <option value="IT|意大利 🇮🇹|EUR">意大利 🇮🇹 (IT)</option>
+                                <option value="ES|西班牙 🇪🇸|EUR">西班牙 🇪🇸 (ES)</option>
+                                <option value="NL|荷兰 🇳🇱|EUR">荷兰 🇳🇱 (NL)</option>
+                                <option value="PL|波兰 🇵🇱|EUR">波兰 🇵🇱 (PL)</option>
+                                <option value="BE|比利时 🇧🇪|EUR">比利时 🇧🇪 (BE)</option>
+                                <option value="AT|奥地利 🇦🇹|EUR">奥地利 🇦🇹 (AT)</option>
+                                <option value="SE|瑞典 🇸🇪|EUR">瑞典 🇸🇪 (SE)</option>
+                                <option value="PT|葡萄牙 🇵🇹|EUR">葡萄牙 🇵🇹 (PT)</option>
+                                <option value="CZ|捷克 🇨🇿|EUR">捷克 🇨🇿 (CZ)</option>
+                                <option value="CUSTOM|自定义国家...|EUR">➕ 自定义国家...</option>
+                            </select>
+                            <button onclick="addSelectedCountry()" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm transition flex items-center gap-1">
+                                ➕ 添加国家
+                            </button>
+                        </div>
+                    </div>
+
                     <div id="euNoticeBox" class="bg-indigo-50/80 border border-indigo-200 text-indigo-900 rounded-xl px-4 py-2.5 text-xs flex items-center justify-between">
-                        <span>💡 修改下表中各国家的申报供货价或尾程费，数据将自动保存至浏览器 LocalStorage，并在下方实时计算各国的最终到手毛利与利润率。</span>
+                        <span>💡 修改下表中各国家的申报供货价（支持切换 欧元 EUR / 人民币 CNY）或尾程费，数据将自动保存至浏览器 LocalStorage 并实时计算毛利与利润率。</span>
                         <span id="euStorageStatus" class="text-[11px] font-semibold text-emerald-600 bg-white px-2 py-0.5 rounded border border-emerald-200">✓ 已开启 LocalStorage 自动同步</span>
                     </div>
 
@@ -531,15 +565,16 @@
                             <thead>
                                 <tr class="bg-slate-100 text-slate-700 border-b border-slate-200 font-semibold">
                                     <th class="py-3 px-3.5">国家 / 站点</th>
-                                    <th class="py-3 px-3">货币代码</th>
+                                    <th class="py-3 px-3">币种设置</th>
                                     <th class="py-3 px-3">单件尾程费 (EUR €)</th>
-                                    <th class="py-3 px-3">独立申报供货价 (EUR €)</th>
+                                    <th class="py-3 px-3">独立平台申报供货价</th>
                                     <th class="py-3 px-3 text-right">单件总成本 (CNY)</th>
                                     <th class="py-3 px-3 text-right">单件毛利 (CNY)</th>
                                     <th class="py-3 px-3 text-right">单件毛利 (EUR €)</th>
                                     <th class="py-3 px-3 text-right">销售利润率</th>
                                     <th class="py-3 px-3 text-right">零利润保本价</th>
                                     <th class="py-3 px-3 text-center">状态评估</th>
+                                    <th class="py-3 px-3 text-center">操作</th>
                                 </tr>
                             </thead>
                             <tbody id="euCountryTableBody" class="divide-y divide-slate-100 text-slate-800">
@@ -597,18 +632,20 @@
 
         // 欧洲各国默认供货价与尾程费配置列表
         const DEFAULT_EU_COUNTRY_CONFIGS = [
-            { code: "DE", name: "德国 🇩🇪", currency: "EUR", lastMileCost: 4.20, declarePrice: 13.99 },
-            { code: "FR", name: "法国 🇫🇷", currency: "EUR", lastMileCost: 4.50, declarePrice: 14.50 },
-            { code: "IT", name: "意大利 🇮🇹", currency: "EUR", lastMileCost: 4.80, declarePrice: 14.99 },
-            { code: "ES", name: "西班牙 🇪🇸", currency: "EUR", lastMileCost: 4.60, declarePrice: 14.20 },
-            { code: "NL", name: "荷兰 🇳🇱", currency: "EUR", lastMileCost: 4.10, declarePrice: 13.80 },
-            { code: "PL", name: "波兰 🇵🇱", currency: "EUR", lastMileCost: 3.90, declarePrice: 12.99 },
-            { code: "BE", name: "比利时 🇧🇪", currency: "EUR", lastMileCost: 4.30, declarePrice: 14.00 },
-            { code: "AT", name: "奥地利 🇦🇹", currency: "EUR", lastMileCost: 4.40, declarePrice: 14.50 }
+            { code: "DE", name: "德国 🇩🇪", currency: "EUR", declareCurr: "EUR", lastMileCost: 4.20, declarePrice: 13.99 },
+            { code: "FR", name: "法国 🇫🇷", currency: "EUR", declareCurr: "EUR", lastMileCost: 4.50, declarePrice: 14.50 },
+            { code: "IT", name: "意大利 🇮🇹", currency: "EUR", declareCurr: "EUR", lastMileCost: 4.80, declarePrice: 14.99 },
+            { code: "ES", name: "西班牙 🇪🇸", currency: "EUR", declareCurr: "EUR", lastMileCost: 4.60, declarePrice: 14.20 },
+            { code: "NL", name: "荷兰 🇳🇱", currency: "EUR", declareCurr: "EUR", lastMileCost: 4.10, declarePrice: 13.80 },
+            { code: "PL", name: "波兰 🇵🇱", currency: "EUR", declareCurr: "EUR", lastMileCost: 3.90, declarePrice: 12.99 },
+            { code: "BE", name: "比利时 🇧🇪", currency: "EUR", declareCurr: "EUR", lastMileCost: 4.30, declarePrice: 14.00 },
+            { code: "AT", name: "奥地利 🇦🇹", currency: "EUR", declareCurr: "EUR", lastMileCost: 4.40, declarePrice: 14.50 }
         ];
 
         const EU_STORAGE_KEY = "temu_eu_country_prices";
+        const EU_RATE_STORAGE_KEY = "temu_eu_exchange_rate";
         let euCountryPrices = [];
+        let euExchangeRate = 7.80;
 
         // 批量清单默认示例数据
         let batchItems = [
@@ -907,11 +944,26 @@
          */
         function loadEuPricesFromStorage() {
             try {
+                const storedRate = localStorage.getItem(EU_RATE_STORAGE_KEY);
+                if (storedRate) {
+                    const rateVal = parseFloat(storedRate);
+                    if (rateVal > 0) euExchangeRate = rateVal;
+                }
+
                 const stored = localStorage.getItem(EU_STORAGE_KEY);
                 if (stored) {
                     const parsed = JSON.parse(stored);
                     if (Array.isArray(parsed) && parsed.length > 0) {
-                        euCountryPrices = parsed;
+                        euCountryPrices = parsed.map(item => ({
+                            code: item.code || "DE",
+                            name: item.name || item.code || "未知国家",
+                            currency: item.currency || "EUR",
+                            declareCurr: item.declareCurr || "EUR",
+                            lastMileCost: parseFloat(item.lastMileCost) || 0,
+                            declarePrice: parseFloat(item.declarePrice) || 0
+                        }));
+                        const rateInput = document.getElementById('euExchangeRateInput');
+                        if (rateInput) rateInput.value = euExchangeRate.toFixed(2);
                         return;
                     }
                 }
@@ -919,11 +971,14 @@
                 console.warn("读取 LocalStorage 欧洲供货价配置失败:", e);
             }
             euCountryPrices = JSON.parse(JSON.stringify(DEFAULT_EU_COUNTRY_CONFIGS));
+            const rateInput = document.getElementById('euExchangeRateInput');
+            if (rateInput) rateInput.value = euExchangeRate.toFixed(2);
         }
 
         function saveEuPricesToStorage() {
             try {
                 localStorage.setItem(EU_STORAGE_KEY, JSON.stringify(euCountryPrices));
+                localStorage.setItem(EU_RATE_STORAGE_KEY, euExchangeRate.toString());
                 const statusEl = document.getElementById("euStorageStatus");
                 if (statusEl) {
                     statusEl.textContent = "✓ 已自动保存至 LocalStorage";
@@ -936,8 +991,69 @@
 
         function resetEuPricesToDefault() {
             euCountryPrices = JSON.parse(JSON.stringify(DEFAULT_EU_COUNTRY_CONFIGS));
+            euExchangeRate = 7.80;
+            const rateInput = document.getElementById('euExchangeRateInput');
+            if (rateInput) rateInput.value = "7.80";
             saveEuPricesToStorage();
             recalcAll();
+        }
+
+        function onEuRateChange() {
+            const inputEl = document.getElementById('euExchangeRateInput');
+            const newRate = parseFloat(inputEl ? inputEl.value : 0) || 7.80;
+            euExchangeRate = newRate;
+            saveEuPricesToStorage();
+            recalcAll();
+        }
+
+        function addSelectedCountry() {
+            const selectEl = document.getElementById('addCountrySelect');
+            if (!selectEl) return;
+            const val = selectEl.value;
+            let code = "", name = "", currency = "EUR";
+
+            if (val.startsWith("CUSTOM")) {
+                const inputName = prompt("请输入新增国家名称（例如：希腊 🇬🇷）:", "希腊 🇬🇷");
+                if (!inputName || !inputName.trim()) return;
+                const inputCode = prompt("请输入国家二字简码（例如：GR）:", "GR");
+                if (!inputCode || !inputCode.trim()) return;
+                code = inputCode.trim().toUpperCase();
+                name = inputName.trim();
+            } else {
+                const parts = val.split('|');
+                code = parts[0];
+                name = parts[1];
+                currency = parts[2] || "EUR";
+            }
+
+            // 检查是否重复添加
+            if (euCountryPrices.some(c => c.code === code)) {
+                alert(`国家 [${name}] 已存在于列表中，无需重复添加！`);
+                return;
+            }
+
+            euCountryPrices.push({
+                code,
+                name,
+                currency,
+                declareCurr: "EUR",
+                lastMileCost: 4.50,
+                declarePrice: 14.50
+            });
+
+            saveEuPricesToStorage();
+            recalcAll();
+        }
+
+        function removeEuCountry(index) {
+            if (euCountryPrices[index]) {
+                const countryName = euCountryPrices[index].name;
+                if (confirm(`确定要移除 [${countryName}] 吗？`)) {
+                    euCountryPrices.splice(index, 1);
+                    saveEuPricesToStorage();
+                    recalcAll();
+                }
+            }
         }
 
         /**
@@ -945,8 +1061,9 @@
          */
         function exportEuPricesJson() {
             const dataToExport = {
-                version: "1.0",
+                version: "2.0",
                 exportedAt: new Date().toISOString(),
+                euExchangeRate: euExchangeRate,
                 euCountryPrices: euCountryPrices
             };
             const jsonStr = JSON.stringify(dataToExport, null, 2);
@@ -974,6 +1091,14 @@
                         items = parsed;
                     } else if (parsed && Array.isArray(parsed.euCountryPrices)) {
                         items = parsed.euCountryPrices;
+                        if (parsed.euExchangeRate) {
+                            const rateVal = parseFloat(parsed.euExchangeRate);
+                            if (rateVal > 0) {
+                                euExchangeRate = rateVal;
+                                const rateInput = document.getElementById('euExchangeRateInput');
+                                if (rateInput) rateInput.value = euExchangeRate.toFixed(2);
+                            }
+                        }
                     }
 
                     if (items && items.length > 0) {
@@ -982,6 +1107,7 @@
                             code: (it.code || "DE").toString().toUpperCase(),
                             name: it.name || it.code || "未知国家",
                             currency: (it.currency || "EUR").toString().toUpperCase(),
+                            declareCurr: (it.declareCurr || "EUR").toString().toUpperCase() === "CNY" ? "CNY" : "EUR",
                             lastMileCost: Math.max(0, parseFloat(it.lastMileCost) || 0),
                             declarePrice: Math.max(0, parseFloat(it.declarePrice) || 0)
                         }));
@@ -1008,9 +1134,12 @@
         }
 
         function updateEuCountryField(index, field, value) {
-            const numVal = parseFloat(value) || 0;
             if (euCountryPrices[index]) {
-                euCountryPrices[index][field] = numVal;
+                if (field === 'declareCurr') {
+                    euCountryPrices[index][field] = value;
+                } else {
+                    euCountryPrices[index][field] = parseFloat(value) || 0;
+                }
                 saveEuPricesToStorage();
                 recalcAll();
             }
@@ -1023,8 +1152,7 @@
             const tbody = document.getElementById("euCountryTableBody");
             if (!tbody) return;
 
-            // 获取欧洲区汇率（默认取 EUR 汇率，即 7.80）
-            const eurRate = SITE_CONFIGS.DE ? SITE_CONFIGS.DE.rate : 7.80;
+            const eurRate = Math.max(0.0001, euExchangeRate);
             const targetMarginPct = parseFloat(document.getElementById('targetMarginSlider').value) || 20;
             const lossRatePct = parseFloat(document.getElementById('lossRateSlider').value) || 0;
 
@@ -1034,6 +1162,9 @@
             const firstLegCurr = document.getElementById('firstLegCurrSelect').value;
 
             tbody.innerHTML = euCountryPrices.map((c, idx) => {
+                const declareCurr = c.declareCurr || "EUR";
+                const isCny = declareCurr === "CNY";
+
                 const res = calculateItemProfit({
                     sku: `EU-${c.code}`,
                     siteCode: "DE",
@@ -1044,7 +1175,7 @@
                     lastMileCost: c.lastMileCost,
                     lastMileCurr: "LOCAL",
                     declarePrice: c.declarePrice,
-                    declareCurr: "LOCAL",
+                    declareCurr: isCny ? "CNY" : "LOCAL",
                     subsidy: 0,
                     lossRate: lossRatePct / 100.0,
                     targetMargin: targetMarginPct / 100.0
@@ -1062,11 +1193,20 @@
                 }
 
                 const profitClass = res.profitCny >= 0 ? "text-emerald-700 font-bold" : "text-red-600 font-bold";
+                const currSymbol = isCny ? "¥" : "€";
+                const convertedSubtext = isCny
+                    ? `折合 €${(c.declarePrice / eurRate).toFixed(2)}`
+                    : `折合 ¥${(c.declarePrice * eurRate).toFixed(2)}`;
 
                 return `
                     <tr class="hover:bg-slate-50 transition">
                         <td class="py-2.5 px-3.5 font-bold text-slate-900">${c.name}</td>
-                        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded bg-slate-100 font-semibold text-slate-600">${c.currency}</span></td>
+                        <td class="py-2.5 px-3">
+                            <select onchange="updateEuCountryField(${idx}, 'declareCurr', this.value)" class="text-[11px] font-semibold px-2 py-1 rounded bg-slate-100 text-slate-700 border border-slate-200 focus:outline-none cursor-pointer">
+                                <option value="EUR" ${!isCny ? 'selected' : ''}>EUR 欧元</option>
+                                <option value="CNY" ${isCny ? 'selected' : ''}>CNY 人民币</option>
+                            </select>
+                        </td>
                         <td class="py-2.5 px-3">
                             <div class="relative w-28">
                                 <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-slate-400 font-semibold">€</span>
@@ -1074,9 +1214,12 @@
                             </div>
                         </td>
                         <td class="py-2.5 px-3">
-                            <div class="relative w-32">
-                                <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-indigo-600 font-bold">€</span>
-                                <input type="number" value="${c.declarePrice.toFixed(2)}" step="0.5" min="0.01" oninput="updateEuCountryField(${idx}, 'declarePrice', this.value)" class="w-full pl-7 pr-2 py-1 text-xs font-bold text-indigo-700 bg-indigo-50/50 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <div>
+                                <div class="relative w-36">
+                                    <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-indigo-600 font-bold">${currSymbol}</span>
+                                    <input type="number" value="${c.declarePrice.toFixed(2)}" step="0.5" min="0.01" oninput="updateEuCountryField(${idx}, 'declarePrice', this.value)" class="w-full pl-7 pr-2 py-1 text-xs font-bold text-indigo-700 bg-indigo-50/50 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                </div>
+                                <div class="text-[10px] text-slate-400 mt-0.5 font-medium">${convertedSubtext}</div>
                             </div>
                         </td>
                         <td class="py-2.5 px-3 text-right font-semibold text-slate-800">¥${res.totalCostCny.toFixed(2)}</td>
@@ -1085,6 +1228,11 @@
                         <td class="py-2.5 px-3 text-right font-bold text-slate-900">${res.marginPct.toFixed(2)}%</td>
                         <td class="py-2.5 px-3 text-right text-slate-700 font-semibold">€${res.breakevenDeclareLocal.toFixed(2)}</td>
                         <td class="py-2.5 px-3 text-center">${statusBadge}</td>
+                        <td class="py-2.5 px-3 text-center">
+                            <button onclick="removeEuCountry(${idx})" class="px-2 py-1 rounded bg-slate-100 hover:bg-red-50 hover:text-red-600 text-slate-500 font-semibold transition text-xs">
+                                🗑️ 删除
+                            </button>
+                        </td>
                     </tr>
                 `;
             }).join('');
