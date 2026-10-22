@@ -551,7 +551,7 @@
                             </p>
                         </div>
                         <div class="flex flex-wrap items-center gap-2">
-                            <input type="text" id="euProjectNameInput" value="HOME-CHAIR-01" placeholder="输入项目/SKU名称" class="rounded-xl border border-indigo-300 px-3 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-48">
+                            <input type="text" id="euProjectNameInput" value="HOME-CHAIR-01" placeholder="输入项目/SKU名称" oninput="recalcAll()" class="rounded-xl border border-indigo-300 px-3 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-48">
                             <button onclick="saveEuProject()" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition shadow-sm flex items-center gap-1">
                                 <span>💾</span> 保存为项目
                             </button>
@@ -1787,22 +1787,100 @@
             recalcAll();
         }
 
-        // 渲染批量 SKU 表格（默认展示德国 DE 数据，提供加载至多国模块按钮）
+        // 渲染批量 SKU 表格（针对欧洲多国项目，直接 100% 映射绑定欧洲模块中德国 DE 站点的实时计算结果）
         function renderBatchTable(targetMargin, lossRate) {
             const activeSiteCode = document.getElementById('siteSelect').value;
             const activeRate = parseFloat(document.getElementById('exchangeRate').value) || 7.2;
+            const currentEuProjectName = (document.getElementById('euProjectNameInput') ? document.getElementById('euProjectNameInput').value.trim() : "");
+
+            let batchUpdated = false;
 
             latestBatchResults = batchItems.map((it, idx) => {
-                const cfg = SITE_CONFIGS[it.siteCode] || SITE_CONFIGS.US;
-                const useRate = it.siteCode === activeSiteCode ? activeRate : cfg.rate;
-                const calc = calculateItemProfit({
-                    ...it,
-                    rate: useRate,
-                    lossRate,
-                    targetMargin
-                });
-                return { ...calc, raw: it, cfg, idx };
+                let isEuProject = Array.isArray(it.euCountries) && it.euCountries.length > 0;
+                if (!isEuProject && currentEuProjectName && it.sku === currentEuProjectName) {
+                    it.euCountries = JSON.parse(JSON.stringify(euCountryPrices));
+                    isEuProject = true;
+                    batchUpdated = true;
+                }
+
+                if (isEuProject) {
+                    // 若 EU 模块当前加载的项目 SKU 与此项目一致，实时同调最新的 euCountries
+                    if (currentEuProjectName && it.sku === currentEuProjectName) {
+                        it.euCountries = JSON.parse(JSON.stringify(euCountryPrices));
+                        batchUpdated = true;
+                    }
+
+                    const deCountry = it.euCountries.find(c => c.code === "DE") || it.euCountries[0] || {
+                        lastMileCost: 4.20, outboundCost: 0.80, storageCost: 0.30, declarePrice: 13.99, subsidy: 0.00, declareCurr: "EUR"
+                    };
+
+                    const eurRate = Math.max(0.0001, euExchangeRate);
+                    const declareCurr = deCountry.declareCurr || "EUR";
+                    const isCny = declareCurr === "CNY";
+
+                    const effectiveLastMile = isCny ? (deCountry.lastMileCost || 0) * eurRate : (deCountry.lastMileCost || 0);
+                    const effectiveOutbound = isCny ? (deCountry.outboundCost || 0) * eurRate : (deCountry.outboundCost || 0);
+                    const effectiveStorage = isCny ? (deCountry.storageCost || 0) * eurRate : (deCountry.storageCost || 0);
+                    const effectiveSubsidy = isCny ? (deCountry.subsidy || 0) * eurRate : (deCountry.subsidy || 0);
+
+                    const calc = calculateItemProfit({
+                        sku: it.sku,
+                        siteCode: "DE",
+                        rate: eurRate,
+                        purchaseCostCny: it.purchaseCostCny,
+                        firstLegCost: it.firstLegCost,
+                        firstLegCurr: it.firstLegCurr,
+                        lastMileCost: effectiveLastMile,
+                        lastMileCurr: isCny ? "CNY" : "LOCAL",
+                        outboundCost: effectiveOutbound,
+                        outboundCurr: isCny ? "CNY" : "LOCAL",
+                        storageCost: effectiveStorage,
+                        storageCurr: isCny ? "CNY" : "LOCAL",
+                        declarePrice: deCountry.declarePrice,
+                        declareCurr: isCny ? "CNY" : "LOCAL",
+                        subsidy: effectiveSubsidy,
+                        subsidyCurr: isCny ? "CNY" : "LOCAL",
+                        lossRate,
+                        targetMargin
+                    });
+
+                    // 100% 映射绑定欧洲模块德国站点的实时数据
+                    const boundRaw = {
+                        ...it,
+                        siteCode: "DE",
+                        lastMileCost: deCountry.lastMileCost,
+                        lastMileCurr: isCny ? "CNY" : "LOCAL",
+                        outboundCost: deCountry.outboundCost || 0,
+                        outboundCurr: isCny ? "CNY" : "LOCAL",
+                        storageCost: deCountry.storageCost || 0,
+                        storageCurr: isCny ? "CNY" : "LOCAL",
+                        declarePrice: deCountry.declarePrice,
+                        declareCurr: isCny ? "CNY" : "LOCAL",
+                        subsidy: deCountry.subsidy || 0
+                    };
+
+                    return {
+                        ...calc,
+                        raw: boundRaw,
+                        cfg: SITE_CONFIGS.DE,
+                        idx
+                    };
+                } else {
+                    const cfg = SITE_CONFIGS[it.siteCode] || SITE_CONFIGS.US;
+                    const useRate = it.siteCode === activeSiteCode ? activeRate : cfg.rate;
+                    const calc = calculateItemProfit({
+                        ...it,
+                        rate: useRate,
+                        lossRate,
+                        targetMargin
+                    });
+                    return { ...calc, raw: it, cfg, idx };
+                }
             });
+
+            if (batchUpdated) {
+                saveBatchItemsToStorage();
+            }
 
             const tbody = document.getElementById('batchListBody');
             tbody.innerHTML = latestBatchResults.map(r => {
@@ -1813,7 +1891,8 @@
                 const outboundText = r.raw.outboundCurr === "CNY" ? `¥${(r.raw.outboundCost || 0).toFixed(2)}` : `${sym}${(r.raw.outboundCost || 0).toFixed(2)}`;
                 const storageText = r.raw.storageCurr === "CNY" ? `¥${(r.raw.storageCost || 0).toFixed(2)}` : `${sym}${(r.raw.storageCost || 0).toFixed(2)}`;
                 const decText = r.raw.declareCurr === "CNY" ? `¥${r.raw.declarePrice.toFixed(2)}` : `${sym}${r.raw.declarePrice.toFixed(2)}`;
-                const subText = r.raw.subsidy > 0 ? `${sym}${r.raw.subsidy.toFixed(2)}` : "-";
+                const subSymbol = r.raw.declareCurr === "CNY" ? "¥" : sym;
+                const subText = r.raw.subsidy > 0 ? `${subSymbol}${r.raw.subsidy.toFixed(2)}` : "-";
 
                 const isEuProject = Array.isArray(r.raw.euCountries) && r.raw.euCountries.length > 0;
                 const euBadge = isEuProject ? `<span class="ml-1 text-[10px] font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200">🇪🇺 欧洲多国</span>` : '';
