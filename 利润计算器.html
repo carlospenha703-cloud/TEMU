@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEMU半托管极简利润计算器 - 免安装网页版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.5);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(100, 116, 139, 0.8);
+        }
+        input[type="range"] {
+            accent-color: #f97316;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- 顶部导航栏 -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-[1560px] mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-bold text-xl shadow-sm">
+                    ⚡
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">TEMU 半托管极简利润与核价工作台</h1>
+                        <span class="hidden sm:inline-block px-2.5 py-0.5 text-xs font-semibold bg-orange-100 text-orange-700 rounded-full">拿货 + 头程 + 尾程三元精简版</span>
+                    </div>
+                    <p id="headerSummary" class="text-xs text-slate-500 mt-0.5">
+                        当前站点：美国站 (US) ｜ 站点本币：USD ($) ｜ 核算汇率：1 USD = 7.20 CNY
+                    </p>
+                </div>
+            </div>
+
+            <!-- 顶部模式切换 -->
+            <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80">
+                <button onclick="switchTab('single')" id="tabBtn-single" class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all bg-white text-orange-600 shadow-sm">
+                    🧮 单品快速核价与反推
+                </button>
+                <button onclick="switchTab('batch')" id="tabBtn-batch" class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 transition-all">
+                    📋 批量 SKU 清单与导出
+                </button>
+                <button onclick="switchTab('formula')" id="tabBtn-formula" class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 transition-all">
+                    📐 极简核算公式说明
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主体内容容器 -->
+    <div class="max-w-[1560px] w-full mx-auto px-4 sm:px-6 py-5 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- 左侧边栏：站点汇率配置 & 头程速算助手 (占 3 列) -->
+        <aside class="lg:col-span-3 space-y-5">
+            <!-- 1. 站点与汇率配置卡片 -->
+            <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                        <span>🌍</span> 站点与汇率配置
+                    </h2>
+                    <button onclick="resetSiteDefault()" class="text-xs text-orange-600 hover:text-orange-700 font-medium underline">
+                        恢复默认
+                    </button>
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">选择目标半托管站点</label>
+                        <select id="siteSelect" onchange="onSiteChange()" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white">
+                            <option value="US">🇺🇸 美国站 (US - USD $)</option>
+                            <option value="DE">🇪🇺 欧区德国/法国等 (EU - EUR €)</option>
+                            <option value="UK">🇬🇧 英国站 (UK - GBP £)</option>
+                            <option value="CA">🇨🇦 加拿大站 (CA - CAD C$)</option>
+                            <option value="AU">🇦🇺 澳洲站 (AU - AUD A$)</option>
+                            <option value="JP">🇯🇵 日本站 (JP - JPY ¥)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                            核算汇率 (<span id="rateLabelText">1 USD 兑多少 CNY</span>)
+                        </label>
+                        <input type="number" id="exchangeRate" value="7.20" step="0.05" min="0.001" oninput="recalcAll()" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-100 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-700">目标销售利润率 (Margin)</span>
+                            <span id="targetMarginBadge" class="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-md border border-orange-200">20%</span>
+                        </div>
+                        <input type="range" id="targetMarginSlider" min="5" max="50" step="1" value="20" oninput="recalcAll()" class="w-full">
+
+                        <div>
+                            <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+                                <span>售后/退货损耗率预留 (可选)</span>
+                                <span id="lossRateBadge" class="text-slate-600 font-bold">0.0%</span>
+                            </div>
+                            <input type="range" id="lossRateSlider" min="0" max="20" step="0.5" value="0" oninput="recalcAll()" class="w-full">
+                            <p class="text-[11px] text-slate-400 mt-1">纯粹核算硬成本可保持 0%；实战建议预留 3%~5%。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. 可选辅助小工具：重量尺寸折算单件头程费 -->
+            <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm space-y-3.5">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                    <h2 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                        <span>📦</span> 单件头程费速算器 (辅助)
+                    </h2>
+                    <span class="text-[11px] text-slate-400">按需使用</span>
+                </div>
+                <p class="text-xs text-slate-500 leading-relaxed">
+                    若只知道包装尺寸与重量，可在此折算单件头程费用并一键填入右侧：
+                </p>
+
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div>
+                        <label class="block text-[11px] font-medium text-slate-600 mb-1">单品实重 (kg)</label>
+                        <input type="number" id="helperActualWt" value="1.20" step="0.1" min="0.01" oninput="calcHelperFirstLeg()" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-semibold">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-medium text-slate-600 mb-1">物流渠道单价 (¥/kg)</label>
+                        <input type="number" id="helperKgRate" value="9.5" step="0.5" min="0.1" oninput="calcHelperFirstLeg()" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-semibold">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="block text-[11px] text-slate-500 mb-0.5">长(cm)</label>
+                        <input type="number" id="helperL" value="30" step="1" min="1" oninput="calcHelperFirstLeg()" class="w-full rounded-lg border border-slate-300 px-2 py-1 text-xs font-semibold">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-slate-500 mb-0.5">宽(cm)</label>
+                        <input type="number" id="helperW" value="25" step="1" min="1" oninput="calcHelperFirstLeg()" class="w-full rounded-lg border border-slate-300 px-2 py-1 text-xs font-semibold">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-slate-500 mb-0.5">高(cm)</label>
+                        <input type="number" id="helperH" value="12" step="1" min="1" oninput="calcHelperFirstLeg()" class="w-full rounded-lg border border-slate-300 px-2 py-1 text-xs font-semibold">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-medium text-slate-600 mb-1">体积重系数</label>
+                    <select id="helperDivisor" onchange="calcHelperFirstLeg()" class="w-full rounded-lg border border-slate-300 bg-slate-50 px-2.5 py-1.5 text-xs font-medium">
+                        <option value="6000">长×宽×高 ÷ 6000 (海运常用)</option>
+                        <option value="5000">长×宽×高 ÷ 5000 (空运/快递)</option>
+                        <option value="7000">长×宽×高 ÷ 7000 (大件专线)</option>
+                    </select>
+                </div>
+
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 flex items-center justify-between">
+                    <div class="text-xs">
+                        <div class="text-slate-500">计费重: <b id="helperChargeWt" class="text-slate-800">1.50 kg</b></div>
+                        <div class="text-slate-600 mt-0.5">折算头程: <b id="helperResultCny" class="text-orange-600 text-sm">¥14.25</b></div>
+                    </div>
+                    <button onclick="applyHelperToMain()" class="px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold shadow-sm transition">
+                        填入头程 ➔
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 右侧主工作区 (占 9 列) -->
+        <main class="lg:col-span-9 space-y-6">
+
+            <!-- ==================== 选项卡 1：单品快速核价与反推 ==================== -->
+            <section id="tabPanel-single" class="space-y-6">
+
+                <!-- 极简三项核心成本 + 平台申报价输入卡片 -->
+                <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm space-y-5">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-1 rounded-lg bg-orange-100 text-orange-700 font-bold text-xs">核心输入</span>
+                            <h2 class="text-base font-bold text-slate-900">三项单件成本与平台申报价</h2>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="text" id="skuNameInput" value="HOME-CHAIR-01" placeholder="输入SKU编号或品名" class="rounded-xl border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500 w-44">
+                            <button onclick="addCurrentSkuToList()" class="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition flex items-center gap-1 shadow-sm">
+                                <span>➕</span> 保存至对比清单
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 四宫格核心参数输入 -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+
+                        <!-- 成本 1：拿货成本 -->
+                        <div class="rounded-xl border border-blue-200 bg-blue-50/30 p-4 space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-blue-900 flex items-center gap-1">
+                                    <span class="w-5 h-5 rounded-md bg-blue-600 text-white text-[11px] flex items-center justify-center">1</span>
+                                    单件拿货成本
+                                </span>
+                                <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-blue-100 text-blue-700">固定 CNY ¥</span>
+                            </div>
+                            <div class="relative">
+                                <input type="number" id="purchaseCostInput" value="35.00" step="1.0" min="0" oninput="recalcAll()" class="w-full rounded-xl border border-blue-300 bg-white px-3 py-2 text-lg font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <p id="purchaseSubText" class="text-[11px] text-slate-500">
+                                折合站点本币：<b class="text-slate-700">$4.86 USD</b>
+                            </p>
+                        </div>
+
+                        <!-- 成本 2：头程单个费用 -->
+                        <div class="rounded-xl border border-indigo-200 bg-indigo-50/30 p-4 space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-indigo-900 flex items-center gap-1">
+                                    <span class="w-5 h-5 rounded-md bg-indigo-600 text-white text-[11px] flex items-center justify-center">2</span>
+                                    头程单个费用
+                                </span>
+                                <select id="firstLegCurrSelect" onchange="recalcAll()" class="text-[11px] font-semibold px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800 border border-indigo-200 focus:outline-none cursor-pointer">
+                                    <option value="CNY">按人民币 (CNY)</option>
+                                    <option value="LOCAL">按站点本币</option>
+                                </select>
+                            </div>
+                            <div class="relative">
+                                <input type="number" id="firstLegCostInput" value="8.00" step="0.5" min="0" oninput="recalcAll()" class="w-full rounded-xl border border-indigo-300 bg-white px-3 py-2 text-lg font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            <p id="firstLegSubText" class="text-[11px] text-slate-500">
+                                折合站点本币：<b class="text-slate-700">$1.11 USD</b>
+                            </p>
+                        </div>
+
+                        <!-- 成本 3：对应站点单个尾程费用 -->
+                        <div class="rounded-xl border border-amber-200 bg-amber-50/30 p-4 space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-amber-900 flex items-center gap-1">
+                                    <span class="w-5 h-5 rounded-md bg-amber-600 text-white text-[11px] flex items-center justify-center">3</span>
+                                    站点单件尾程费
+                                </span>
+                                <select id="lastMileCurrSelect" onchange="recalcAll()" class="text-[11px] font-semibold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200 focus:outline-none cursor-pointer">
+                                    <option value="LOCAL" selected>按站点本币</option>
+                                    <option value="CNY">按人民币 (CNY)</option>
+                                </select>
+                            </div>
+                            <div class="relative">
+                                <input type="number" id="lastMileCostInput" value="4.50" step="0.2" min="0" oninput="recalcAll()" class="w-full rounded-xl border border-amber-300 bg-white px-3 py-2 text-lg font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                            </div>
+                            <p id="lastMileSubText" class="text-[11px] text-slate-500">
+                                折合人民币：<b class="text-slate-700">¥32.40 CNY</b>
+                            </p>
+                        </div>
+
+                        <!-- 收入项：平台核定申报供货价 + 运费补贴 -->
+                        <div class="rounded-xl border-2 border-orange-300 bg-orange-50/40 p-4 space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-orange-950 flex items-center gap-1">
+                                    <span>💰</span> 平台申报供货价
+                                </span>
+                                <select id="declareCurrSelect" onchange="recalcAll()" class="text-[11px] font-semibold px-1.5 py-0.5 rounded bg-orange-200/80 text-orange-900 border border-orange-300 focus:outline-none cursor-pointer">
+                                    <option value="LOCAL" selected>按站点本币</option>
+                                    <option value="CNY">按人民币 (CNY)</option>
+                                </select>
+                            </div>
+                            <div class="relative">
+                                <input type="number" id="declarePriceInput" value="14.99" step="0.5" min="0.01" oninput="recalcAll()" class="w-full rounded-xl border border-orange-400 bg-white px-3 py-2 text-lg font-bold text-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            </div>
+                            <div class="flex items-center justify-between pt-0.5">
+                                <span class="text-[11px] text-slate-600 font-medium">+ 平台运费补贴(同币种):</span>
+                                <input type="number" id="subsidyInput" value="0.00" step="0.5" min="0" oninput="recalcAll()" class="w-20 rounded-lg border border-slate-300 bg-white px-2 py-0.5 text-xs font-bold text-emerald-700 text-right">
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- 核心财务结果 KPI 看板 (5 列) -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3.5">
+                    <!-- 1. 单件总成本 -->
+                    <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm">
+                        <p class="text-xs font-medium text-slate-500">单件总成本 (拿货+头+尾)</p>
+                        <p id="kpiTotalCostCny" class="text-xl sm:text-2xl font-bold text-slate-900 mt-1">¥75.40</p>
+                        <span id="kpiTotalCostLocal" class="inline-block mt-1.5 px-2 py-0.5 text-[11px] font-semibold rounded-md bg-slate-100 text-slate-600">
+                            折合 $10.47 USD
+                        </span>
+                    </div>
+
+                    <!-- 2. 单件毛利 -->
+                    <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm">
+                        <p class="text-xs font-medium text-slate-500">单件到手毛利</p>
+                        <p id="kpiProfitCny" class="text-xl sm:text-2xl font-bold text-emerald-600 mt-1">¥32.53</p>
+                        <span id="kpiProfitLocal" class="inline-block mt-1.5 px-2 py-0.5 text-[11px] font-semibold rounded-md bg-emerald-50 text-emerald-700">
+                            折合 $4.52 USD
+                        </span>
+                    </div>
+
+                    <!-- 3. 销售利润率 & ROI -->
+                    <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm">
+                        <p class="text-xs font-medium text-slate-500">销售利润率 (Margin)</p>
+                        <p id="kpiMarginPct" class="text-xl sm:text-2xl font-bold text-slate-900 mt-1">30.14%</p>
+                        <span id="kpiRoiBadge" class="inline-block mt-1.5 px-2 py-0.5 text-[11px] font-semibold rounded-md bg-blue-50 text-blue-700">
+                            成本ROI: 43.14%
+                        </span>
+                    </div>
+
+                    <!-- 4. 保本最低申报价 -->
+                    <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm">
+                        <p class="text-xs font-medium text-slate-500">🛡️ 零利润保本申报底价</p>
+                        <p id="kpiBreakevenLocal" class="text-xl sm:text-2xl font-bold text-slate-800 mt-1">$10.47</p>
+                        <span id="kpiBreakevenCny" class="inline-block mt-1.5 px-2 py-0.5 text-[11px] font-semibold rounded-md bg-slate-100 text-slate-600">
+                            人民币 ¥75.40
+                        </span>
+                    </div>
+
+                    <!-- 5. 目标利润反推建议申报价 -->
+                    <div class="bg-gradient-to-br from-orange-50 to-amber-50/70 rounded-2xl border border-orange-200/90 p-4 shadow-sm col-span-2 sm:col-span-1">
+                        <p id="kpiTargetTitle" class="text-xs font-bold text-orange-900">🎯 20%目标利润率建议申报价</p>
+                        <p id="kpiTargetPriceLocal" class="text-xl sm:text-2xl font-bold text-orange-600 mt-1">$13.09</p>
+                        <span id="kpiTargetPriceCny" class="inline-block mt-1.5 px-2 py-0.5 text-[11px] font-semibold rounded-md bg-white/90 text-orange-800 border border-orange-200">
+                            人民币 ¥94.25
+                        </span>
+                    </div>
+                </div>
+
+                <!-- 下半部分：三项成本占比拆解 + 目标利润/买手砍价阶梯表 -->
+                <div class="grid grid-cols-1 xl:grid-cols-12 gap-5">
+
+                    <!-- 左侧：三元成本构成与利润拆解 (5 列) -->
+                    <div class="xl:col-span-5 bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm flex flex-col justify-between space-y-4">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                <span>📊</span> 拿货 + 头程 + 尾程 成本占比分析
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-0.5">清晰观察物流费用（头程+尾程）与货值成本的轻重比例</p>
+
+                            <!-- 成本内部结构拼接条 -->
+                            <div class="mt-4 bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 space-y-2">
+                                <div class="flex justify-between text-xs font-semibold text-slate-700">
+                                    <span>📦 单件总成本内部结构</span>
+                                    <span id="logisticsShareText" class="text-indigo-600">物流总占比(头+尾): 53.6%</span>
+                                </div>
+                                <div id="stackedCostBar" class="w-full h-3.5 rounded-full overflow-hidden flex bg-slate-200">
+                                    <!-- JS 渲染三色拼接条 -->
+                                </div>
+                                <div class="flex items-center justify-between text-[11px] text-slate-500 pt-1">
+                                    <span class="flex items-center gap-1"><i class="w-2.5 h-2.5 rounded-sm bg-blue-500 inline-block"></i> 拿货成本</span>
+                                    <span class="flex items-center gap-1"><i class="w-2.5 h-2.5 rounded-sm bg-indigo-500 inline-block"></i> 头程单件费</span>
+                                    <span class="flex items-center gap-1"><i class="w-2.5 h-2.5 rounded-sm bg-amber-500 inline-block"></i> 站点尾程费</span>
+                                </div>
+                            </div>
+
+                            <!-- 各项占收入比进度条 -->
+                            <div id="breakdownBarsWrap" class="mt-4 space-y-3">
+                                <!-- JS 渲染 -->
+                            </div>
+                        </div>
+
+                        <!-- 双币种对照小表格 -->
+                        <div class="overflow-x-auto border-t border-slate-100 pt-3">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr class="text-slate-400 border-b border-slate-100">
+                                        <th class="py-1.5 font-medium">项目明细</th>
+                                        <th class="py-1.5 font-medium text-right">人民币 (CNY)</th>
+                                        <th class="py-1.5 font-medium text-right">站点本币</th>
+                                        <th class="py-1.5 font-medium text-right">占总成本比</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="costTableBody" class="divide-y divide-slate-100 text-slate-700">
+                                    <!-- JS 渲染 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 右侧：买手砍价 / 活动折扣阶梯沙盘 & 阶梯定价反推表 (7 列) -->
+                    <div class="xl:col-span-7 bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm flex flex-col justify-between space-y-4">
+                        <div>
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <div>
+                                    <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                        <span>📉</span> 买手议价 / 活动折扣利润沙盘
+                                    </h3>
+                                    <p class="text-xs text-slate-500 mt-0.5">当平台买手要求在当前申报价基础上打折提报活动时，各折扣档位的单件毛利与底线</p>
+                                </div>
+                            </div>
+
+                            <div class="overflow-x-auto mt-3">
+                                <table class="w-full text-left text-xs sm:text-sm">
+                                    <thead>
+                                        <tr class="bg-slate-50 text-slate-600 border-y border-slate-200/80 text-xs">
+                                            <th class="py-2.5 px-3 font-semibold">活动让利档位</th>
+                                            <th class="py-2.5 px-2.5 font-semibold text-right">折后申报价(本币)</th>
+                                            <th class="py-2.5 px-2.5 font-semibold text-right">单件毛利(CNY)</th>
+                                            <th class="py-2.5 px-2.5 font-semibold text-right">单件毛利(本币)</th>
+                                            <th class="py-2.5 px-2.5 font-semibold text-right">销售利润率</th>
+                                            <th class="py-2.5 px-2.5 font-semibold text-right">成本ROI</th>
+                                            <th class="py-2.5 px-3 font-semibold text-center">状态评估</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="discountSandboxBody" class="divide-y divide-slate-100">
+                                        <!-- JS 动态生成 -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- 底部：销量毛利预估与不同目标利润率速查 -->
+                        <div class="bg-slate-50 rounded-xl p-4 border border-slate-200/80 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+                            <div>
+                                <label class="block text-[11px] font-medium text-slate-500 mb-1">预估出单量 (件)</label>
+                                <input type="number" id="salesVolumeInput" value="300" step="50" min="1" oninput="recalcAll()" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-bold text-slate-900">
+                            </div>
+                            <div class="bg-white rounded-lg p-2.5 border border-slate-200/70">
+                                <p class="text-[11px] text-slate-500">预计总毛利 (人民币)</p>
+                                <p id="totalVolumeProfitCny" class="text-base font-bold text-emerald-600 mt-0.5">¥9,759.00</p>
+                            </div>
+                            <div class="bg-white rounded-lg p-2.5 border border-slate-200/70">
+                                <p class="text-[11px] text-slate-500">备货+物流总垫资 (人民币)</p>
+                                <p id="totalVolumeCapitalCny" class="text-base font-bold text-slate-800 mt-0.5">¥22,620.00</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- ==================== 选项卡 2：批量 SKU 清单与 CSV 导入导出 ==================== -->
+            <section id="tabPanel-batch" class="hidden space-y-5">
+                <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                        <div>
+                            <h2 class="text-base font-bold text-slate-900">📋 批量 SKU 极简核价表（拿货 + 头程 + 站点尾程）</h2>
+                            <p class="text-xs text-slate-500 mt-0.5">
+                                可在「单品核价」点击保存加入此表，也可直接下载 CSV 模板批量导入几百个 SKU 一键算清利润与建议申报价。
+                            </p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button onclick="downloadBatchTemplate()" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+                                📥 下载 CSV 导入模板
+                            </button>
+                            <label class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-orange-600 hover:bg-orange-700 text-white transition cursor-pointer shadow-sm">
+                                📤 导入 CSV 批量计算
+                                <input type="file" id="csvUploadInput" accept=".csv" onchange="handleBatchCsvUpload(event)" class="hidden">
+                            </label>
+                            <button onclick="exportBatchCsv()" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-sm">
+                                📊 导出核算结果 (CSV)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="batchNoticeBox" class="bg-blue-50/80 border border-blue-200 text-blue-800 rounded-xl px-4 py-2.5 text-xs flex items-center justify-between">
+                        <span>💡 表格支持跨站点混合核算，汇率与目标利润率自动联动左侧配置。点击每行右侧「加载」可回填至单品计算器。</span>
+                    </div>
+
+                    <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                        <table class="w-full text-left text-xs whitespace-nowrap">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-600 border-b border-slate-200 font-semibold">
+                                    <th class="py-2.5 px-3">SKU</th>
+                                    <th class="py-2.5 px-2.5">站点</th>
+                                    <th class="py-2.5 px-2.5 text-right">拿货成本(¥)</th>
+                                    <th class="py-2.5 px-2.5 text-right">单件头程</th>
+                                    <th class="py-2.5 px-2.5 text-right">站点单件尾程</th>
+                                    <th class="py-2.5 px-2.5 text-right">单件总成本(¥)</th>
+                                    <th class="py-2.5 px-2.5 text-right">当前申报价</th>
+                                    <th class="py-2.5 px-2.5 text-right">运费补贴</th>
+                                    <th class="py-2.5 px-2.5 text-right">单件毛利(¥)</th>
+                                    <th class="py-2.5 px-2.5 text-right">单件毛利(本币)</th>
+                                    <th class="py-2.5 px-2.5 text-right">销售利润率</th>
+                                    <th class="py-2.5 px-2.5 text-right">成本ROI</th>
+                                    <th class="py-2.5 px-2.5 text-right">保本申报价</th>
+                                    <th class="py-2.5 px-2.5 text-right text-orange-700">目标利润建议价</th>
+                                    <th class="py-2.5 px-3 text-center">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="batchListBody" class="divide-y divide-slate-100 text-slate-700">
+                                <!-- JS 渲染 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== 选项卡 3：极简核算公式说明 ==================== -->
+            <section id="tabPanel-formula" class="hidden space-y-5">
+                <div class="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-sm space-y-5">
+                    <div class="border-l-4 border-orange-500 bg-orange-50/70 p-4 rounded-r-xl text-xs sm:text-sm text-slate-700 leading-relaxed">
+                        <b class="text-slate-900">三元极简成本模型设计理念：</b> 将繁杂的仓储、打单、海运拼箱分摊直接收敛为<b>「单件拿货成本 + 单件头程费用 + 对应站点单件尾程费用」</b>三大明确模块，系统在底层自动将不同币种统一折算为人民币（CNY）与站点本币双向输出，既避免汇率换算错乱，又能秒算保本价与目标利润申报价。
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-2.5">
+                            <h3 class="text-sm font-bold text-slate-900">1. 正向毛利与利润率公式（统一折算为 CNY）</h3>
+                            <ul class="text-xs text-slate-600 space-y-2 leading-relaxed list-disc pl-4">
+                                <li><b>单件总成本 (CNY)</b> = 拿货成本(CNY) + 头程单件费用(折算CNY) + 站点尾程单件费用(折算CNY)</li>
+                                <li><b>单件净收入 (CNY)</b> = [平台申报供货价(折算CNY) + 平台运费补贴(折算CNY)] × (1 - 售后损耗率)</li>
+                                <li><b>单件毛利 (CNY)</b> = 单件净收入(CNY) - 单件总成本(CNY)</li>
+                                <li><b>销售利润率 (Margin)</b> = 单件毛利 ÷ 单件净收入 × 100%</li>
+                                <li><b>成本利润率 (ROI)</b> = 单件毛利 ÷ 单件总成本 × 100%</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-2.5">
+                            <h3 class="text-sm font-bold text-slate-900">2. 反向推导申报价公式</h3>
+                            <ul class="text-xs text-slate-600 space-y-2 leading-relaxed list-disc pl-4">
+                                <li><b>零利润保本申报价 (CNY)</b> = 单件总成本(CNY) ÷ (1 - 售后损耗率) - 平台运费补贴(CNY)</li>
+                                <li><b>目标销售利润率建议申报价 (CNY)</b> = 单件总成本(CNY) ÷ [(1 - 目标销售利润率) × (1 - 售后损耗率)] - 平台运费补贴(CNY)</li>
+                                <li><b>本币申报价换算</b> = 建议申报价(CNY) ÷ 对应站点汇率</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        // 各站点默认汇率与示例尾程参数配置
+        const SITE_CONFIGS = {
+            US: { code: "US", name: "美国站", currency: "USD", symbol: "$", rate: 7.20, sampleLastMile: 4.50, sampleDeclare: 14.99 },
+            DE: { code: "DE", name: "欧区站", currency: "EUR", symbol: "€", rate: 7.80, sampleLastMile: 4.20, sampleDeclare: 13.99 },
+            UK: { code: "UK", name: "英国站", currency: "GBP", symbol: "£", rate: 9.10, sampleLastMile: 3.50, sampleDeclare: 11.99 },
+            CA: { code: "CA", name: "加拿大站", currency: "CAD", symbol: "C$", rate: 5.25, sampleLastMile: 6.50, sampleDeclare: 19.99 },
+            AU: { code: "AU", name: "澳洲站", currency: "AUD", symbol: "A$", rate: 4.75, sampleLastMile: 6.80, sampleDeclare: 21.50 },
+            JP: { code: "JP", name: "日本站", currency: "JPY", symbol: "¥", rate: 0.048, sampleLastMile: 650, sampleDeclare: 2280 }
+        };
+
+        // 批量清单默认示例数据
+        let batchItems = [
+            {
+                sku: "HOME-CHAIR-01",
+                siteCode: "US",
+                purchaseCostCny: 35.0,
+                firstLegCost: 8.0,
+                firstLegCurr: "CNY",
+                lastMileCost: 4.50,
+                lastMileCurr: "LOCAL",
+                declarePrice: 14.99,
+                declareCurr: "LOCAL",
+                subsidy: 0.00
+            },
+            {
+                sku: "KITCHEN-RACK-02",
+                siteCode: "DE",
+                purchaseCostCny: 28.0,
+                firstLegCost: 6.5,
+                firstLegCurr: "CNY",
+                lastMileCost: 4.20,
+                lastMileCurr: "LOCAL",
+                declarePrice: 13.50,
+                declareCurr: "LOCAL",
+                subsidy: 0.00
+            },
+            {
+                sku: "PET-BED-03",
+                siteCode: "UK",
+                purchaseCostCny: 22.0,
+                firstLegCost: 5.0,
+                firstLegCurr: "CNY",
+                lastMileCost: 3.40,
+                lastMileCurr: "LOCAL",
+                declarePrice: 10.99,
+                declareCurr: "LOCAL",
+                subsidy: 1.50
+            }
+        ];
+
+        let latestBatchResults = [];
+
+        /**
+         * 币种转换辅助函数：将输入金额统一折算为 CNY
+         */
+        function toCny(amount, currFlag, rate) {
+            return currFlag === "CNY" ? amount : amount * rate;
+        }
+
+        /**
+         * 核心三元成本与利润精算引擎（对应 Python 方案中的 TemuSemiManagedCalculator）
+         */
+        function calculateItemProfit(params) {
+            const {
+                sku, siteCode, rate,
+                purchaseCostCny,
+                firstLegCost, firstLegCurr,
+                lastMileCost, lastMileCurr,
+                declarePrice, declareCurr,
+                subsidy,
+                lossRate, targetMargin
+            } = params;
+
+            const safeRate = Math.max(rate, 0.00001);
+
+            // 1. 三项核心成本统一折算为 CNY
+            const cPurchaseCny = purchaseCostCny;
+            const cFirstCny = toCny(firstLegCost, firstLegCurr, safeRate);
+            const cLastCny = toCny(lastMileCost, lastMileCurr, safeRate);
+
+            const totalCostCny = cPurchaseCny + cFirstCny + cLastCny;
+            const totalCostLocal = totalCostCny / safeRate;
+
+            // 2. 收入项折算为 CNY
+            const declareCny = toCny(declarePrice, declareCurr, safeRate);
+            const subsidyCny = toCny(subsidy, declareCurr, safeRate);
+
+            const grossRevCny = declareCny + subsidyCny;
+            const retention = Math.max(1.0 - lossRate, 0.0001);
+            const netRevCny = grossRevCny * retention;
+
+            // 3. 计算毛利、销售利润率与成本ROI
+            const profitCny = netRevCny - totalCostCny;
+            const profitLocal = profitCny / safeRate;
+
+            const marginPct = netRevCny > 0 ? (profitCny / netRevCny) * 100.0 : 0.0;
+            const roiPct = totalCostCny > 0 ? (profitCny / totalCostCny) * 100.0 : 0.0;
+
+            // 4. 反推零利润保本申报价 & 目标利润率建议申报价
+            const breakevenDeclareCny = Math.max(0, (totalCostCny / retention) - subsidyCny);
+            const breakevenDeclareLocal = breakevenDeclareCny / safeRate;
+
+            const marginFactor = Math.max(1.0 - targetMargin, 0.0001);
+            const targetDeclareCny = Math.max(0, (totalCostCny / (marginFactor * retention)) - subsidyCny);
+            const targetDeclareLocal = targetDeclareCny / safeRate;
+
+            return {
+                sku,
+                siteCode,
+                rate: safeRate,
+                cPurchaseCny,
+                cFirstCny,
+                cLastCny,
+                totalCostCny,
+                totalCostLocal,
+                declareCny,
+                declareLocal: declareCny / safeRate,
+                subsidyCny,
+                subsidyLocal: subsidyCny / safeRate,
+                netRevCny,
+                netRevLocal: netRevCny / safeRate,
+                profitCny,
+                profitLocal,
+                marginPct,
+                roiPct,
+                breakevenDeclareCny,
+                breakevenDeclareLocal,
+                targetDeclareCny,
+                targetDeclareLocal
+            };
+        }
+
+        // 切换顶部选项卡
+        function switchTab(key) {
+            ['single', 'batch', 'formula'].forEach(k => {
+                const panel = document.getElementById(`tabPanel-${k}`);
+                const btn = document.getElementById(`tabBtn-${k}`);
+                if (k === key) {
+                    panel.classList.remove('hidden');
+                    btn.className = "px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all bg-white text-orange-600 shadow-sm";
+                } else {
+                    panel.classList.add('hidden');
+                    btn.className = "px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 transition-all";
+                }
+            });
+        }
+
+        // 切换站点时更新默认汇率
+        function onSiteChange() {
+            const code = document.getElementById('siteSelect').value;
+            const cfg = SITE_CONFIGS[code];
+            document.getElementById('exchangeRate').value = cfg.rate;
+            document.getElementById('rateLabelText').textContent = `1 ${cfg.currency} 兑多少 CNY`;
+            recalcAll();
+        }
+
+        function resetSiteDefault() {
+            const code = document.getElementById('siteSelect').value;
+            const cfg = SITE_CONFIGS[code];
+            document.getElementById('exchangeRate').value = cfg.rate;
+            document.getElementById('targetMarginSlider').value = 20;
+            document.getElementById('lossRateSlider').value = 0;
+            document.getElementById('lastMileCostInput').value = cfg.sampleLastMile;
+            document.getElementById('declarePriceInput').value = cfg.sampleDeclare;
+            recalcAll();
+        }
+
+        // 左侧辅助头程速算器
+        function calcHelperFirstLeg() {
+            const wt = parseFloat(document.getElementById('helperActualWt').value) || 0;
+            const kgRate = parseFloat(document.getElementById('helperKgRate').value) || 0;
+            const l = parseFloat(document.getElementById('helperL').value) || 0;
+            const w = parseFloat(document.getElementById('helperW').value) || 0;
+            const h = parseFloat(document.getElementById('helperH').value) || 0;
+            const div = parseFloat(document.getElementById('helperDivisor').value) || 6000;
+
+            const volWt = (l * w * h) / div;
+            const chargeWt = Math.max(wt, volWt);
+            const costCny = chargeWt * kgRate;
+
+            document.getElementById('helperChargeWt').textContent = `${chargeWt.toFixed(2)} kg`;
+            document.getElementById('helperResultCny').textContent = `¥${costCny.toFixed(2)}`;
+            return costCny;
+        }
+
+        function applyHelperToMain() {
+            const costCny = calcHelperFirstLeg();
+            document.getElementById('firstLegCurrSelect').value = "CNY";
+            document.getElementById('firstLegCostInput').value = costCny.toFixed(2);
+            recalcAll();
+        }
+
+        // 主界面全部重算与渲染
+        function recalcAll() {
+            const siteCode = document.getElementById('siteSelect').value;
+            const siteCfg = SITE_CONFIGS[siteCode];
+            const sym = siteCfg.symbol;
+            const curr = siteCfg.currency;
+
+            const rate = parseFloat(document.getElementById('exchangeRate').value) || siteCfg.rate;
+            const targetMarginPct = parseFloat(document.getElementById('targetMarginSlider').value) || 20;
+            const lossRatePct = parseFloat(document.getElementById('lossRateSlider').value) || 0;
+
+            document.getElementById('targetMarginBadge').textContent = `${targetMarginPct.toFixed(0)}%`;
+            document.getElementById('lossRateBadge').textContent = `${lossRatePct.toFixed(1)}%`;
+
+            document.getElementById('headerSummary').textContent =
+                `当前站点：${siteCfg.name} (${siteCfg.code}) ｜ 站点本币：${curr} (${sym}) ｜ 核算汇率：1 ${curr} = ${rate} CNY`;
+
+            // 读取三项成本与申报价
+            const sku = document.getElementById('skuNameInput').value.trim() || "SKU-001";
+            const purchaseCostCny = parseFloat(document.getElementById('purchaseCostInput').value) || 0;
+
+            const firstLegCost = parseFloat(document.getElementById('firstLegCostInput').value) || 0;
+            const firstLegCurr = document.getElementById('firstLegCurrSelect').value;
+
+            const lastMileCost = parseFloat(document.getElementById('lastMileCostInput').value) || 0;
+            const lastMileCurr = document.getElementById('lastMileCurrSelect').value;
+
+            const declarePrice = parseFloat(document.getElementById('declarePriceInput').value) || 0;
+            const declareCurr = document.getElementById('declareCurrSelect').value;
+            const subsidy = parseFloat(document.getElementById('subsidyInput').value) || 0;
+
+            const res = calculateItemProfit({
+                sku,
+                siteCode,
+                rate,
+                purchaseCostCny,
+                firstLegCost,
+                firstLegCurr,
+                lastMileCost,
+                lastMileCurr,
+                declarePrice,
+                declareCurr,
+                subsidy,
+                lossRate: lossRatePct / 100.0,
+                targetMargin: targetMarginPct / 100.0
+            });
+
+            // 更新输入框下方的实时折算副标题
+            document.getElementById('purchaseSubText').innerHTML =
+                `折合站点本币：<b class="text-slate-700">${sym}${(res.cPurchaseCny / rate).toFixed(2)} ${curr}</b>`;
+
+            document.getElementById('firstLegSubText').innerHTML = firstLegCurr === "CNY"
+                ? `折合站点本币：<b class="text-slate-700">${sym}${(res.cFirstCny / rate).toFixed(2)} ${curr}</b>`
+                : `折合人民币：<b class="text-slate-700">¥${res.cFirstCny.toFixed(2)} CNY</b>`;
+
+            document.getElementById('lastMileSubText').innerHTML = lastMileCurr === "LOCAL"
+                ? `折合人民币：<b class="text-slate-700">¥${res.cLastCny.toFixed(2)} CNY</b>`
+                : `折合站点本币：<b class="text-slate-700">${sym}${(res.cLastCny / rate).toFixed(2)} ${curr}</b>`;
+
+            // 更新 5 张核心 KPI 卡片
+            document.getElementById('kpiTotalCostCny').textContent = `¥${res.totalCostCny.toFixed(2)}`;
+            document.getElementById('kpiTotalCostLocal').textContent = `折合 ${sym}${res.totalCostLocal.toFixed(2)} ${curr}`;
+
+            const profitCnyEl = document.getElementById('kpiProfitCny');
+            const profitLocalEl = document.getElementById('kpiProfitLocal');
+            profitCnyEl.textContent = `¥${res.profitCny.toFixed(2)}`;
+            profitLocalEl.textContent = `折合 ${sym}${res.profitLocal.toFixed(2)} ${curr}`;
+
+            if (res.profitCny >= 0) {
+                profitCnyEl.className = "text-xl sm:text-2xl font-bold text-emerald-600 mt-1";
+                profitLocalEl.className = "inline-block mt-1.5 px-2 py-0.5 text-[11px] font-semibold rounded-md bg-emerald-50 text-emerald-700";
+            } else {
+                profitCnyEl.className = "text-xl sm:text-2xl font-bold text-red-600 mt-1";
+                profitLocalEl.className = "inline-block mt-1.5 px-2 py-0.5 text-[11px] font-semibold rounded-md bg-red-50 text-red-700";
+            }
+
+            document.getElementById('kpiMarginPct').textContent = `${res.marginPct.toFixed(2)}%`;
+            document.getElementById('kpiRoiBadge').textContent = `成本ROI: ${res.roiPct.toFixed(2)}%`;
+
+            document.getElementById('kpiBreakevenLocal').textContent = `${sym}${res.breakevenDeclareLocal.toFixed(2)}`;
+            document.getElementById('kpiBreakevenCny').textContent = `人民币 ¥${res.breakevenDeclareCny.toFixed(2)}`;
+
+            document.getElementById('kpiTargetTitle').textContent = `🎯 ${targetMarginPct.toFixed(0)}%目标利润率建议申报价`;
+            document.getElementById('kpiTargetPriceLocal').textContent = `${sym}${res.targetDeclareLocal.toFixed(2)}`;
+            document.getElementById('kpiTargetPriceCny').textContent = `人民币 ¥${res.targetDeclareCny.toFixed(2)}`;
+
+            // 渲染三项成本占比分析
+            renderCostStructure(res, sym, curr);
+
+            // 渲染右侧买手砍价阶梯沙盘
+            renderDiscountSandbox(res, sym, curr, targetMarginPct, lossRatePct / 100.0);
+
+            // 更新底部销量总毛利测算
+            const vol = parseFloat(document.getElementById('salesVolumeInput').value) || 0;
+            const totalProfitCny = res.profitCny * vol;
+            const totalCapCny = res.totalCostCny * vol;
+            document.getElementById('totalVolumeProfitCny').textContent =
+                `¥${totalProfitCny.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            document.getElementById('totalVolumeCapitalCny').textContent =
+                `¥${totalCapCny.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+            // 同步更新批量表格
+            renderBatchTable(targetMarginPct / 100.0, lossRatePct / 100.0);
+        }
+
+        function renderCostStructure(res, sym, curr) {
+            const safeTotalCost = Math.max(res.totalCostCny, 0.01);
+            const pShare = (res.cPurchaseCny / safeTotalCost) * 100;
+            const fShare = (res.cFirstCny / safeTotalCost) * 100;
+            const lShare = (res.cLastCny / safeTotalCost) * 100;
+
+            document.getElementById('logisticsShareText').textContent =
+                `物流总占比(头+尾): ${(fShare + lShare).toFixed(1)}%`;
+
+            document.getElementById('stackedCostBar').innerHTML = `
+                <div class="bg-blue-500 h-full transition-all duration-300" style="width: ${pShare}%" title="拿货成本 ${pShare.toFixed(1)}%"></div>
+                <div class="bg-indigo-500 h-full transition-all duration-300" style="width: ${fShare}%" title="头程费用 ${fShare.toFixed(1)}%"></div>
+                <div class="bg-amber-500 h-full transition-all duration-300" style="width: ${lShare}%" title="尾程费用 ${lShare.toFixed(1)}%"></div>
+            `;
+
+            const safeRev = Math.max(res.netRevCny, 0.01);
+            const bars = [
+                { name: "1. 单个货物拿货成本", cny: res.cPurchaseCny, costShare: pShare, revShare: (res.cPurchaseCny / safeRev) * 100, color: "bg-blue-500" },
+                { name: "2. 头程单个费用", cny: res.cFirstCny, costShare: fShare, revShare: (res.cFirstCny / safeRev) * 100, color: "bg-indigo-500" },
+                { name: "3. 对应站点单个尾程费用", cny: res.cLastCny, costShare: lShare, revShare: (res.cLastCny / safeRev) * 100, color: "bg-amber-500" },
+                { name: "4. 单件到手毛利", cny: Math.max(0, res.profitCny), costShare: null, revShare: Math.max(0, res.marginPct), color: "bg-emerald-500" }
+            ];
+
+            document.getElementById('breakdownBarsWrap').innerHTML = bars.map(b => {
+                const widthPct = Math.min(100, Math.max(0, b.revShare));
+                return `
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="font-medium text-slate-700">${b.name}</span>
+                            <span class="font-semibold text-slate-900">¥${b.cny.toFixed(2)} (占收入 ${b.revShare.toFixed(1)}%)</span>
+                        </div>
+                        <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                            <div class="${b.color} h-full rounded-full transition-all duration-300" style="width: ${widthPct}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const rows = [
+                { label: "1. 单件拿货成本", cny: res.cPurchaseCny, share: `${pShare.toFixed(1)}%` },
+                { label: "2. 头程单个费用", cny: res.cFirstCny, share: `${fShare.toFixed(1)}%` },
+                { label: "3. 站点单件尾程费", cny: res.cLastCny, share: `${lShare.toFixed(1)}%` },
+                { label: "合计单件总成本", cny: res.totalCostCny, share: "100.0%", bold: true }
+            ];
+
+            document.getElementById('costTableBody').innerHTML = rows.map(r => `
+                <tr class="${r.bold ? 'font-bold bg-slate-50 text-slate-900' : ''}">
+                    <td class="py-1.5">${r.label}</td>
+                    <td class="py-1.5 text-right">¥${r.cny.toFixed(2)}</td>
+                    <td class="py-1.5 text-right">${sym}${(r.cny / res.rate).toFixed(2)} ${curr}</td>
+                    <td class="py-1.5 text-right">${r.share}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderDiscountSandbox(res, sym, curr, targetMarginPct, lossRate) {
+            const discounts = [0, 0.05, 0.10, 0.15, 0.20, 0.25];
+            const retention = Math.max(1.0 - lossRate, 0.0001);
+
+            document.getElementById('discountSandboxBody').innerHTML = discounts.map(d => {
+                const discountedDeclareLocal = res.declareLocal * (1.0 - d);
+                const discountedDeclareCny = discountedDeclareLocal * res.rate;
+                const netRevCny = (discountedDeclareCny + res.subsidyCny) * retention;
+                const profitCny = netRevCny - res.totalCostCny;
+                const profitLocal = profitCny / res.rate;
+                const margin = netRevCny > 0 ? (profitCny / netRevCny) * 100 : 0;
+                const roi = res.totalCostCny > 0 ? (profitCny / res.totalCostCny) * 100 : 0;
+
+                let statusBadge = '';
+                if (margin >= targetMarginPct) {
+                    statusBadge = '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800">🟢 达标可接</span>';
+                } else if (margin >= 8) {
+                    statusBadge = '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-800">🟡 走量微利</span>';
+                } else if (margin > 0) {
+                    statusBadge = '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-orange-100 text-orange-800">🟠 贴近保本</span>';
+                } else {
+                    statusBadge = '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-100 text-red-700">🔴 亏损不可接</span>';
+                }
+
+                const label = d === 0 ? "日常申报原价" : `让利 -${Math.round(d * 100)}% (${100 - Math.round(d * 100)}折)`;
+                const pClass = profitCny >= 0 ? "text-slate-900 font-semibold" : "text-red-600 font-bold";
+
+                return `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-2.5 px-3 font-medium text-slate-800">${label}</td>
+                        <td class="py-2.5 px-2.5 text-right font-semibold">${sym}${discountedDeclareLocal.toFixed(2)}</td>
+                        <td class="py-2.5 px-2.5 text-right ${pClass}">¥${profitCny.toFixed(2)}</td>
+                        <td class="py-2.5 px-2.5 text-right ${pClass}">${sym}${profitLocal.toFixed(2)}</td>
+                        <td class="py-2.5 px-2.5 text-right font-semibold">${margin.toFixed(1)}%</td>
+                        <td class="py-2.5 px-2.5 text-right text-slate-600">${roi.toFixed(1)}%</td>
+                        <td class="py-2.5 px-3 text-center">${statusBadge}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // 将当前单品加入对比清单
+        function addCurrentSkuToList() {
+            const sku = document.getElementById('skuNameInput').value.trim() || `SKU-${batchItems.length + 1}`;
+            const siteCode = document.getElementById('siteSelect').value;
+            const purchaseCostCny = parseFloat(document.getElementById('purchaseCostInput').value) || 0;
+            const firstLegCost = parseFloat(document.getElementById('firstLegCostInput').value) || 0;
+            const firstLegCurr = document.getElementById('firstLegCurrSelect').value;
+            const lastMileCost = parseFloat(document.getElementById('lastMileCostInput').value) || 0;
+            const lastMileCurr = document.getElementById('lastMileCurrSelect').value;
+            const declarePrice = parseFloat(document.getElementById('declarePriceInput').value) || 0;
+            const declareCurr = document.getElementById('declareCurrSelect').value;
+            const subsidy = parseFloat(document.getElementById('subsidyInput').value) || 0;
+
+            batchItems.unshift({
+                sku, siteCode, purchaseCostCny,
+                firstLegCost, firstLegCurr,
+                lastMileCost, lastMileCurr,
+                declarePrice, declareCurr,
+                subsidy
+            });
+
+            recalcAll();
+            switchTab('batch');
+        }
+
+        function loadBatchItemToMain(index) {
+            const item = batchItems[index];
+            if (!item) return;
+            document.getElementById('siteSelect').value = item.siteCode;
+            onSiteChange();
+            document.getElementById('skuNameInput').value = item.sku;
+            document.getElementById('purchaseCostInput').value = item.purchaseCostCny;
+            document.getElementById('firstLegCostInput').value = item.firstLegCost;
+            document.getElementById('firstLegCurrSelect').value = item.firstLegCurr;
+            document.getElementById('lastMileCostInput').value = item.lastMileCost;
+            document.getElementById('lastMileCurrSelect').value = item.lastMileCurr;
+            document.getElementById('declarePriceInput').value = item.declarePrice;
+            document.getElementById('declareCurrSelect').value = item.declareCurr;
+            document.getElementById('subsidyInput').value = item.subsidy || 0;
+            recalcAll();
+            switchTab('single');
+        }
+
+        function removeBatchItem(index) {
+            batchItems.splice(index, 1);
+            recalcAll();
+        }
+
+        // 渲染批量 SKU 表格
+        function renderBatchTable(targetMargin, lossRate) {
+            const activeSiteCode = document.getElementById('siteSelect').value;
+            const activeRate = parseFloat(document.getElementById('exchangeRate').value) || 7.2;
+
+            latestBatchResults = batchItems.map((it, idx) => {
+                const cfg = SITE_CONFIGS[it.siteCode] || SITE_CONFIGS.US;
+                const useRate = it.siteCode === activeSiteCode ? activeRate : cfg.rate;
+                const calc = calculateItemProfit({
+                    ...it,
+                    rate: useRate,
+                    lossRate,
+                    targetMargin
+                });
+                return { ...calc, raw: it, cfg, idx };
+            });
+
+            const tbody = document.getElementById('batchListBody');
+            tbody.innerHTML = latestBatchResults.map(r => {
+                const sym = r.cfg.symbol;
+                const profitClass = r.profitCny >= 0 ? "text-emerald-700 font-bold" : "text-red-600 font-bold";
+                const firstText = r.raw.firstLegCurr === "CNY" ? `¥${r.raw.firstLegCost.toFixed(2)}` : `${sym}${r.raw.firstLegCost.toFixed(2)}`;
+                const lastText = r.raw.lastMileCurr === "CNY" ? `¥${r.raw.lastMileCost.toFixed(2)}` : `${sym}${r.raw.lastMileCost.toFixed(2)}`;
+                const decText = r.raw.declareCurr === "CNY" ? `¥${r.raw.declarePrice.toFixed(2)}` : `${sym}${r.raw.declarePrice.toFixed(2)}`;
+                const subText = r.raw.subsidy > 0 ? `${sym}${r.raw.subsidy.toFixed(2)}` : "-";
+
+                return `
+                    <tr class="hover:bg-slate-50">
+                        <td class="py-2.5 px-3 font-semibold text-slate-900">${r.sku}</td>
+                        <td class="py-2.5 px-2.5"><span class="px-2 py-0.5 rounded bg-slate-100 font-semibold">${r.siteCode} (${r.cfg.currency})</span></td>
+                        <td class="py-2.5 px-2.5 text-right">¥${r.cPurchaseCny.toFixed(2)}</td>
+                        <td class="py-2.5 px-2.5 text-right">${firstText}</td>
+                        <td class="py-2.5 px-2.5 text-right">${lastText}</td>
+                        <td class="py-2.5 px-2.5 text-right font-semibold">¥${r.totalCostCny.toFixed(2)}</td>
+                        <td class="py-2.5 px-2.5 text-right font-semibold">${decText}</td>
+                        <td class="py-2.5 px-2.5 text-right text-slate-500">${subText}</td>
+                        <td class="py-2.5 px-2.5 text-right ${profitClass}">¥${r.profitCny.toFixed(2)}</td>
+                        <td class="py-2.5 px-2.5 text-right ${profitClass}">${sym}${r.profitLocal.toFixed(2)}</td>
+                        <td class="py-2.5 px-2.5 text-right font-semibold">${r.marginPct.toFixed(2)}%</td>
+                        <td class="py-2.5 px-2.5 text-right">${r.roiPct.toFixed(1)}%</td>
+                        <td class="py-2.5 px-2.5 text-right">${sym}${r.breakevenDeclareLocal.toFixed(2)}</td>
+                        <td class="py-2.5 px-2.5 text-right font-bold text-orange-600 bg-orange-50/40">${sym}${r.targetDeclareLocal.toFixed(2)} (¥${r.targetDeclareCny.toFixed(1)})</td>
+                        <td class="py-2.5 px-3 text-center space-x-1">
+                            <button onclick="loadBatchItemToMain(${r.idx})" class="px-2 py-1 rounded bg-orange-50 text-orange-700 hover:bg-orange-100 font-semibold">加载</button>
+                            <button onclick="removeBatchItem(${r.idx})" class="px-2 py-1 rounded bg-slate-100 text-slate-500 hover:bg-red-50 hover:text-red-600">删除</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // 下载精简版 CSV 模板
+        function downloadBatchTemplate() {
+            const headers = ["SKU,站点代码(US/DE/UK/CA/AU/JP),拿货成本(CNY),头程单件费用,头程币种(CNY或LOCAL),站点单件尾程费,尾程币种(LOCAL或CNY),平台申报供货价,申报币种(LOCAL或CNY),平台运费补贴"];
+            const samples = [
+                "HOME-CHAIR-01,US,35.0,8.0,CNY,4.50,LOCAL,14.99,LOCAL,0.00",
+                "KITCHEN-RACK-02,DE,28.0,6.5,CNY,4.20,LOCAL,13.50,LOCAL,0.00",
+                "PET-BED-03,UK,22.0,5.0,CNY,3.40,LOCAL,10.99,LOCAL,1.50"
+            ];
+            const csv = "\uFEFF" + headers.concat(samples).join("\n");
+            triggerDownload(csv, "temu_semi_3cost_template.csv");
+        }
+
+        // 上传 CSV 批量解析
+        function handleBatchCsvUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const lines = e.target.result.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+                if (lines.length < 2) return;
+                const parsed = [];
+                for (let i = 1; i < lines.length; i++) {
+                    const cols = lines[i].split(',');
+                    if (cols.length < 8) continue;
+                    const siteCode = (cols[1] || "US").trim().toUpperCase();
+                    parsed.push({
+                        sku: cols[0].trim(),
+                        siteCode: SITE_CONFIGS[siteCode] ? siteCode : "US",
+                        purchaseCostCny: parseFloat(cols[2]) || 0,
+                        firstLegCost: parseFloat(cols[3]) || 0,
+                        firstLegCurr: (cols[4] || "CNY").trim().toUpperCase(),
+                        lastMileCost: parseFloat(cols[5]) || 0,
+                        lastMileCurr: (cols[6] || "LOCAL").trim().toUpperCase(),
+                        declarePrice: parseFloat(cols[7]) || 0,
+                        declareCurr: (cols[8] || "LOCAL").trim().toUpperCase(),
+                        subsidy: parseFloat(cols[9]) || 0
+                    });
+                }
+                if (parsed.length > 0) {
+                    batchItems = parsed;
+                    const box = document.getElementById('batchNoticeBox');
+                    box.className = "bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl px-4 py-2.5 text-xs flex items-center justify-between";
+                    box.innerHTML = `<span>✅ 已成功导入 <b>${parsed.length}</b> 个 SKU 的三项成本数据并完成利润核算！</span>`;
+                    recalcAll();
+                }
+            };
+            reader.readAsText(file, "UTF-8");
+        }
+
+        // 导出批量核算结果 CSV
+        function exportBatchCsv() {
+            if (!latestBatchResults.length) return;
+            const headers = [
+                "SKU,站点,核算汇率,拿货成本(CNY),头程费用(折算CNY),站点尾程费(折算CNY),单件总成本(CNY),单件总成本(本币),当前申报价(本币),当前申报价(CNY),单件毛利(CNY),单件毛利(本币),销售利润率(%),成本ROI(%),保本申报价(本币),目标利润建议申报价(本币),目标利润建议申报价(CNY)"
+            ];
+            const rows = latestBatchResults.map(r => [
+                r.sku,
+                r.siteCode,
+                r.rate,
+                r.cPurchaseCny.toFixed(2),
+                r.cFirstCny.toFixed(2),
+                r.cLastCny.toFixed(2),
+                r.totalCostCny.toFixed(2),
+                r.totalCostLocal.toFixed(2),
+                r.declareLocal.toFixed(2),
+                r.declareCny.toFixed(2),
+                r.profitCny.toFixed(2),
+                r.profitLocal.toFixed(2),
+                r.marginPct.toFixed(2),
+                r.roiPct.toFixed(2),
+                r.breakevenDeclareLocal.toFixed(2),
+                r.targetDeclareLocal.toFixed(2),
+                r.targetDeclareCny.toFixed(2)
+            ].join(","));
+
+            const csv = "\uFEFF" + headers.concat(rows).join("\n");
+            triggerDownload(csv, "temu_semi_profit_results.csv");
+        }
+
+        function triggerDownload(content, filename) {
+            const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        window.onload = function() {
+            calcHelperFirstLeg();
+            recalcAll();
+        };
+    </script>
+</body>
+</html>
