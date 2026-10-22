@@ -330,6 +330,36 @@
                     </div>
                 </div>
 
+                <!-- 欧洲各国家独立平台申报供货价设置卡片 -->
+                <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-700 font-bold text-xs">🇪🇺 欧区专项</span>
+                                <h2 class="text-base font-bold text-slate-900">欧洲各国家独立平台申报供货价设置</h2>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1">支持对欧洲各主要电商目标国家单独微调‘平台申报供货价’，实时测算各国的到手毛利与利润率，数据自动保存至本地。</p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button onclick="applyDefaultToAllEuCountries()" class="px-3 py-1.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold shadow-sm transition flex items-center gap-1">
+                                ⚡ 一键应用默认价到所有国家
+                            </button>
+                            <button onclick="exportEuPricesJson()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold shadow-sm transition flex items-center gap-1">
+                                📥 导出 JSON
+                            </button>
+                            <label class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold cursor-pointer transition flex items-center gap-1 border border-slate-200">
+                                📤 导入 JSON
+                                <input type="file" id="euJsonFileInput" accept=".json" onchange="importEuPricesJson(event)" class="hidden">
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 多国家表格/卡片网格 -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5" id="euCountryGrid">
+                        <!-- JS 动态渲染欧洲国家列表卡片 -->
+                    </div>
+                </div>
+
                 <!-- 下半部分：三项成本占比拆解 + 目标利润/买手砍价阶梯表 -->
                 <div class="grid grid-cols-1 xl:grid-cols-12 gap-5">
 
@@ -534,6 +564,227 @@
             AU: { code: "AU", name: "澳洲站", currency: "AUD", symbol: "A$", rate: 4.75, sampleLastMile: 6.80, sampleDeclare: 21.50 },
             JP: { code: "JP", name: "日本站", currency: "JPY", symbol: "¥", rate: 0.048, sampleLastMile: 650, sampleDeclare: 2280 }
         };
+
+        // 欧洲主要电商目标国家配置与独立申报供货价状态
+        const DEFAULT_EU_COUNTRIES = [
+            { code: "DE", name: "德国", flag: "🇩🇪", currency: "EUR", symbol: "€", rate: 7.80, declarePrice: 13.99 },
+            { code: "FR", name: "法国", flag: "🇫🇷", currency: "EUR", symbol: "€", rate: 7.80, declarePrice: 13.99 },
+            { code: "IT", name: "意大利", flag: "🇮🇹", currency: "EUR", symbol: "€", rate: 7.80, declarePrice: 13.99 },
+            { code: "ES", name: "西班牙", flag: "🇪🇸", currency: "EUR", symbol: "€", rate: 7.80, declarePrice: 13.99 },
+            { code: "NL", name: "荷兰", flag: "🇳🇱", currency: "EUR", symbol: "€", rate: 7.80, declarePrice: 13.99 },
+            { code: "BE", name: "比利时", flag: "🇧🇪", currency: "EUR", symbol: "€", rate: 7.80, declarePrice: 13.99 },
+            { code: "PL", name: "波兰", flag: "🇵🇱", currency: "PLN", symbol: "zł", rate: 1.82, declarePrice: 62.00 },
+            { code: "AT", name: "奥地利", flag: "🇦🇹", currency: "EUR", symbol: "€", rate: 7.80, declarePrice: 13.99 },
+            { code: "SE", name: "瑞典", flag: "🇸🇪", currency: "SEK", symbol: "kr", rate: 0.68, declarePrice: 165.00 },
+            { code: "CZ", name: "捷克", flag: "🇨🇿", currency: "CZK", symbol: "Kč", rate: 0.31, declarePrice: 350.00 }
+        ];
+
+        let euCountryData = JSON.parse(JSON.stringify(DEFAULT_EU_COUNTRIES));
+
+        // 从 LocalStorage 加载欧洲各国家价格配置
+        function loadEuPricesFromStorage() {
+            try {
+                const stored = localStorage.getItem('temu_eu_country_prices');
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        // 合并配置，保证结构完整
+                        euCountryData = DEFAULT_EU_COUNTRIES.map(def => {
+                            const found = parsed.find(p => p.code === def.code);
+                            return found && typeof found.declarePrice === 'number' && !isNaN(found.declarePrice)
+                                ? { ...def, declarePrice: found.declarePrice }
+                                : def;
+                        });
+                    }
+                }
+            } catch (e) {
+                console.warn('读取 LocalStorage 欧洲国家配置失败:', e);
+            }
+        }
+
+        // 保存欧洲各国家价格配置到 LocalStorage
+        function saveEuPricesToStorage() {
+            try {
+                localStorage.setItem('temu_eu_country_prices', JSON.stringify(euCountryData));
+            } catch (e) {
+                console.warn('写入 LocalStorage 欧洲国家配置失败:', e);
+            }
+        }
+
+        // 批量将当前的平台申报供货价应用到所有欧洲国家（若为非EUR国家，根据汇率换算等额当地货币价）
+        function applyDefaultToAllEuCountries() {
+            const currentDeclarePrice = parseFloat(document.getElementById('declarePriceInput').value) || 0;
+            const currentDeclareCurr = document.getElementById('declareCurrSelect').value;
+            const siteCode = document.getElementById('siteSelect').value;
+            const activeRate = parseFloat(document.getElementById('exchangeRate').value) || 7.20;
+
+            // 算出现有输入的 CNY 等价值
+            const baseCny = currentDeclareCurr === "CNY" ? currentDeclarePrice : currentDeclarePrice * activeRate;
+
+            euCountryData.forEach(c => {
+                if (c.currency === "EUR") {
+                    // 若基础输入是EUR，直接应用EUR数字；否则按EUR汇率换算
+                    if (currentDeclareCurr === "LOCAL" && (siteCode === "DE" || SITE_CONFIGS[siteCode]?.currency === "EUR")) {
+                        c.declarePrice = currentDeclarePrice;
+                    } else {
+                        c.declarePrice = parseFloat((baseCny / c.rate).toFixed(2));
+                    }
+                } else {
+                    // 非EUR国家，按对应国家汇率换算
+                    c.declarePrice = parseFloat((baseCny / c.rate).toFixed(2));
+                }
+            });
+
+            saveEuPricesToStorage();
+            renderEuCountryGrid();
+        }
+
+        // 修改单个国家的申报价格并进行格式与数字校验
+        function onEuCountryPriceChange(code, rawValue) {
+            let val = parseFloat(rawValue);
+            if (isNaN(val) || val < 0) {
+                val = 0;
+            }
+            const country = euCountryData.find(c => c.code === code);
+            if (country) {
+                country.declarePrice = parseFloat(val.toFixed(2));
+                saveEuPricesToStorage();
+                renderEuCountryGrid();
+            }
+        }
+
+        // 导出 JSON 格式配置文件
+        function exportEuPricesJson() {
+            const dataToExport = {
+                version: "1.0",
+                exportTime: new Date().toISOString(),
+                sku: document.getElementById('skuNameInput').value.trim() || "DEFAULT-SKU",
+                euCountryPrices: euCountryData
+            };
+            const jsonStr = JSON.stringify(dataToExport, null, 2);
+            const blob = new Blob([jsonStr], { type: "application/json;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `eu_declare_prices_${dataToExport.sku}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // 导入 JSON 格式配置文件
+        function importEuPricesJson(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    let list = null;
+                    if (Array.isArray(parsed)) {
+                        list = parsed;
+                    } else if (parsed && Array.isArray(parsed.euCountryPrices)) {
+                        list = parsed.euCountryPrices;
+                    }
+
+                    if (list) {
+                        euCountryData = DEFAULT_EU_COUNTRIES.map(def => {
+                            const found = list.find(p => p.code === def.code);
+                            return found && typeof found.declarePrice === 'number' && !isNaN(found.declarePrice)
+                                ? { ...def, declarePrice: found.declarePrice }
+                                : def;
+                        });
+                        saveEuPricesToStorage();
+                        renderEuCountryGrid();
+                        alert("✅ 欧洲国家申报价格配置 JSON 导入成功！");
+                    } else {
+                        alert("⚠️ 导入的 JSON 文件格式不匹配！");
+                    }
+                } catch (err) {
+                    alert("❌ 无法解析该 JSON 文件，请检查格式是否有误。");
+                }
+            };
+            reader.readAsText(file, "UTF-8");
+            event.target.value = "";
+        }
+
+        // 渲染欧洲各国家独立价格卡片网格与实时毛利/利润率测算
+        function renderEuCountryGrid() {
+            const grid = document.getElementById('euCountryGrid');
+            if (!grid) return;
+
+            // 获取当下的基础三项成本 (CNY)
+            const purchaseCostCny = parseFloat(document.getElementById('purchaseCostInput').value) || 0;
+
+            const firstLegCost = parseFloat(document.getElementById('firstLegCostInput').value) || 0;
+            const firstLegCurr = document.getElementById('firstLegCurrSelect').value;
+
+            const lastMileCost = parseFloat(document.getElementById('lastMileCostInput').value) || 0;
+            const lastMileCurr = document.getElementById('lastMileCurrSelect').value;
+
+            const subsidy = parseFloat(document.getElementById('subsidyInput').value) || 0;
+            const lossRatePct = parseFloat(document.getElementById('lossRateSlider').value) || 0;
+            const lossRate = lossRatePct / 100.0;
+            const retention = Math.max(1.0 - lossRate, 0.0001);
+
+            const activeSiteCode = document.getElementById('siteSelect').value;
+            const activeRate = parseFloat(document.getElementById('exchangeRate').value) || 7.20;
+
+            grid.innerHTML = euCountryData.map(c => {
+                // 计算该国家的单件总成本 (CNY)
+                const cPurchaseCny = purchaseCostCny;
+                const cFirstCny = toCny(firstLegCost, firstLegCurr, c.rate);
+                const cLastCny = toCny(lastMileCost, lastMileCurr, c.rate);
+                const totalCostCny = cPurchaseCny + cFirstCny + cLastCny;
+
+                // 计算该国家在独立申报价下的收入与利润
+                const declareCny = c.declarePrice * c.rate;
+                const subsidyCny = subsidy * c.rate;
+                const netRevCny = (declareCny + subsidyCny) * retention;
+                const profitCny = netRevCny - totalCostCny;
+                const profitLocal = profitCny / c.rate;
+                const marginPct = netRevCny > 0 ? (profitCny / netRevCny) * 100 : 0;
+
+                let badgeClass = "";
+                let statusText = "";
+                if (profitCny < 0) {
+                    badgeClass = "bg-red-50 text-red-600 border-red-200";
+                    statusText = "🔴 亏损";
+                } else if (marginPct < 15) {
+                    badgeClass = "bg-amber-50 text-amber-700 border-amber-200";
+                    statusText = "🟡 低利";
+                } else {
+                    badgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200";
+                    statusText = "🟢 健康";
+                }
+
+                return `
+                    <div class="rounded-xl border border-slate-200 bg-slate-50/50 p-3 space-y-2 hover:border-orange-300 transition shadow-2xs">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                <span class="text-base">${c.flag}</span> ${c.name}
+                            </span>
+                            <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded border ${badgeClass}">
+                                ${statusText} ${marginPct.toFixed(1)}%
+                            </span>
+                        </div>
+
+                        <div class="relative">
+                            <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 pointer-events-none">${c.symbol}</span>
+                            <input type="number" value="${c.declarePrice}" step="0.5" min="0"
+                                onchange="onEuCountryPriceChange('${c.code}', this.value)"
+                                class="w-full rounded-lg border border-slate-300 bg-white pl-7 pr-2 py-1 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                        </div>
+
+                        <div class="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
+                            <span>毛利: <b class="${profitCny >= 0 ? 'text-emerald-600' : 'text-red-600'}">¥${profitCny.toFixed(1)}</b></span>
+                            <span>汇率: <b>${c.rate}</b></span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
 
         // 批量清单默认示例数据
         let batchItems = [
@@ -805,6 +1056,9 @@
 
             // 渲染三项成本占比分析
             renderCostStructure(res, sym, curr);
+
+            // 渲染欧洲各国家独立供货价网格
+            renderEuCountryGrid();
 
             // 渲染右侧买手砍价阶梯沙盘
             renderDiscountSandbox(res, sym, curr, targetMarginPct, lossRatePct / 100.0);
@@ -1109,6 +1363,7 @@
         }
 
         window.onload = function() {
+            loadEuPricesFromStorage();
             calcHelperFirstLeg();
             recalcAll();
         };
