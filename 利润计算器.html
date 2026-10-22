@@ -41,7 +41,7 @@
                 <div>
                     <div class="flex items-center gap-2">
                         <h1 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">TEMU 半托管极简利润与核价工作台</h1>
-                        <span class="hidden sm:inline-block px-2.5 py-0.5 text-xs font-semibold bg-orange-100 text-orange-700 rounded-full">拿货 + 头程 + 尾程三元精简版</span>
+                        <span class="hidden sm:inline-block px-2.5 py-0.5 text-xs font-semibold bg-orange-100 text-orange-700 rounded-full">采购 + 头程 + 尾程 + 出库 + 仓储全成本版</span>
                     </div>
                     <p id="headerSummary" class="text-xs text-slate-500 mt-0.5">
                         当前站点：美国站 (US) ｜ 站点本币：USD ($) ｜ 核算汇率：1 USD = 7.20 CNY
@@ -187,12 +187,12 @@
             <!-- ==================== 选项卡 1：单品快速核价与反推 ==================== -->
             <section id="tabPanel-single" class="space-y-6">
 
-                <!-- 极简三项核心成本 + 平台申报价输入卡片 -->
+                <!-- 完整成本结构 + 平台申报价输入卡片 -->
                 <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm space-y-5">
                     <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
                         <div class="flex items-center gap-2">
                             <span class="px-2.5 py-1 rounded-lg bg-orange-100 text-orange-700 font-bold text-xs">核心输入</span>
-                            <h2 class="text-base font-bold text-slate-900">三项单件成本与平台申报价</h2>
+                            <h2 class="text-base font-bold text-slate-900">单件成本构成（采购+头程+尾程+出库+仓储）与申报价</h2>
                         </div>
                         <div class="flex items-center gap-2">
                             <input type="text" id="skuNameInput" value="HOME-CHAIR-01" placeholder="输入SKU编号或品名" class="rounded-xl border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500 w-44">
@@ -202,20 +202,20 @@
                         </div>
                     </div>
 
-                    <!-- 四宫格核心参数输入 -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                    <!-- 六宫格核心参数输入 -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
 
-                        <!-- 成本 1：拿货成本 -->
-                        <div class="rounded-xl border border-blue-200 bg-blue-50/30 p-4 space-y-2.5">
+                        <!-- 成本 1：采购成本 -->
+                        <div class="rounded-xl border border-blue-200 bg-blue-50/30 p-3.5 space-y-2">
                             <div class="flex items-center justify-between">
                                 <span class="text-xs font-bold text-blue-900 flex items-center gap-1">
                                     <span class="w-5 h-5 rounded-md bg-blue-600 text-white text-[11px] flex items-center justify-center">1</span>
-                                    单件拿货成本
+                                    单件采购/拿货成本
                                 </span>
                                 <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-blue-100 text-blue-700">固定 CNY ¥</span>
                             </div>
                             <div class="relative">
-                                <input type="number" id="purchaseCostInput" value="35.00" step="1.0" min="0" oninput="recalcAll()" class="w-full rounded-xl border border-blue-300 bg-white px-3 py-2 text-lg font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <input type="number" id="purchaseCostInput" value="35.00" step="1.0" min="0" oninput="recalcAll()" class="w-full rounded-xl border border-blue-300 bg-white px-3 py-1.5 text-base font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             </div>
                             <p id="purchaseSubText" class="text-[11px] text-slate-500">
                                 折合站点本币：<b class="text-slate-700">$4.86 USD</b>
@@ -223,11 +223,11 @@
                         </div>
 
                         <!-- 成本 2：头程单个费用 -->
-                        <div class="rounded-xl border border-indigo-200 bg-indigo-50/30 p-4 space-y-2.5">
+                        <div class="rounded-xl border border-indigo-200 bg-indigo-50/30 p-3.5 space-y-2">
                             <div class="flex items-center justify-between">
                                 <span class="text-xs font-bold text-indigo-900 flex items-center gap-1">
                                     <span class="w-5 h-5 rounded-md bg-indigo-600 text-white text-[11px] flex items-center justify-center">2</span>
-                                    头程单个费用
+                                    头程单件运费
                                 </span>
                                 <select id="firstLegCurrSelect" onchange="recalcAll()" class="text-[11px] font-semibold px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800 border border-indigo-200 focus:outline-none cursor-pointer">
                                     <option value="CNY">按人民币 (CNY)</option>
@@ -235,7 +235,7 @@
                                 </select>
                             </div>
                             <div class="relative">
-                                <input type="number" id="firstLegCostInput" value="8.00" step="0.5" min="0" oninput="recalcAll()" class="w-full rounded-xl border border-indigo-300 bg-white px-3 py-2 text-lg font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <input type="number" id="firstLegCostInput" value="8.00" step="0.5" min="0" oninput="recalcAll()" class="w-full rounded-xl border border-indigo-300 bg-white px-3 py-1.5 text-base font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             </div>
                             <p id="firstLegSubText" class="text-[11px] text-slate-500">
                                 折合站点本币：<b class="text-slate-700">$1.11 USD</b>
@@ -243,7 +243,7 @@
                         </div>
 
                         <!-- 成本 3：对应站点单个尾程费用 -->
-                        <div class="rounded-xl border border-amber-200 bg-amber-50/30 p-4 space-y-2.5">
+                        <div class="rounded-xl border border-amber-200 bg-amber-50/30 p-3.5 space-y-2">
                             <div class="flex items-center justify-between">
                                 <span class="text-xs font-bold text-amber-900 flex items-center gap-1">
                                     <span class="w-5 h-5 rounded-md bg-amber-600 text-white text-[11px] flex items-center justify-center">3</span>
@@ -255,15 +255,55 @@
                                 </select>
                             </div>
                             <div class="relative">
-                                <input type="number" id="lastMileCostInput" value="4.50" step="0.2" min="0" oninput="recalcAll()" class="w-full rounded-xl border border-amber-300 bg-white px-3 py-2 text-lg font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                                <input type="number" id="lastMileCostInput" value="4.50" step="0.2" min="0" oninput="recalcAll()" class="w-full rounded-xl border border-amber-300 bg-white px-3 py-1.5 text-base font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500">
                             </div>
                             <p id="lastMileSubText" class="text-[11px] text-slate-500">
                                 折合人民币：<b class="text-slate-700">¥32.40 CNY</b>
                             </p>
                         </div>
 
+                        <!-- 成本 4：出库费 (Outbound Fee) -->
+                        <div class="rounded-xl border border-purple-200 bg-purple-50/30 p-3.5 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-purple-900 flex items-center gap-1">
+                                    <span class="w-5 h-5 rounded-md bg-purple-600 text-white text-[11px] flex items-center justify-center">4</span>
+                                    单件出库费 (Outbound)
+                                </span>
+                                <select id="outboundCurrSelect" onchange="recalcAll()" class="text-[11px] font-semibold px-1.5 py-0.5 rounded bg-purple-100 text-purple-800 border border-purple-200 focus:outline-none cursor-pointer">
+                                    <option value="LOCAL" selected>按站点本币</option>
+                                    <option value="CNY">按人民币 (CNY)</option>
+                                </select>
+                            </div>
+                            <div class="relative">
+                                <input type="number" id="outboundCostInput" value="0.80" step="0.1" min="0" oninput="recalcAll()" class="w-full rounded-xl border border-purple-300 bg-white px-3 py-1.5 text-base font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            </div>
+                            <p id="outboundSubText" class="text-[11px] text-slate-500">
+                                折合人民币：<b class="text-slate-700">¥5.76 CNY</b>
+                            </p>
+                        </div>
+
+                        <!-- 成本 5：仓储费 (Storage Fee) -->
+                        <div class="rounded-xl border border-rose-200 bg-rose-50/30 p-3.5 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-rose-900 flex items-center gap-1">
+                                    <span class="w-5 h-5 rounded-md bg-rose-600 text-white text-[11px] flex items-center justify-center">5</span>
+                                    单件仓储费 (Storage)
+                                </span>
+                                <select id="storageCurrSelect" onchange="recalcAll()" class="text-[11px] font-semibold px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 border border-rose-200 focus:outline-none cursor-pointer">
+                                    <option value="LOCAL" selected>按站点本币</option>
+                                    <option value="CNY">按人民币 (CNY)</option>
+                                </select>
+                            </div>
+                            <div class="relative">
+                                <input type="number" id="storageCostInput" value="0.30" step="0.1" min="0" oninput="recalcAll()" class="w-full rounded-xl border border-rose-300 bg-white px-3 py-1.5 text-base font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500">
+                            </div>
+                            <p id="storageSubText" class="text-[11px] text-slate-500">
+                                折合人民币：<b class="text-slate-700">¥2.16 CNY</b>
+                            </p>
+                        </div>
+
                         <!-- 收入项：平台核定申报供货价 + 运费补贴 -->
-                        <div class="rounded-xl border-2 border-orange-300 bg-orange-50/40 p-4 space-y-2.5">
+                        <div class="rounded-xl border-2 border-orange-300 bg-orange-50/40 p-3.5 space-y-2">
                             <div class="flex items-center justify-between">
                                 <span class="text-xs font-bold text-orange-950 flex items-center gap-1">
                                     <span>💰</span> 平台申报供货价
@@ -274,10 +314,10 @@
                                 </select>
                             </div>
                             <div class="relative">
-                                <input type="number" id="declarePriceInput" value="14.99" step="0.5" min="0.01" oninput="recalcAll()" class="w-full rounded-xl border border-orange-400 bg-white px-3 py-2 text-lg font-bold text-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                <input type="number" id="declarePriceInput" value="14.99" step="0.5" min="0.01" oninput="recalcAll()" class="w-full rounded-xl border border-orange-400 bg-white px-3 py-1.5 text-base font-bold text-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500">
                             </div>
                             <div class="flex items-center justify-between pt-0.5">
-                                <span class="text-[11px] text-slate-600 font-medium">+ 平台运费补贴(同币种):</span>
+                                <span class="text-[11px] text-slate-600 font-medium">+ 平台运费补贴:</span>
                                 <input type="number" id="subsidyInput" value="0.00" step="0.5" min="0" oninput="recalcAll()" class="w-20 rounded-lg border border-slate-300 bg-white px-2 py-0.5 text-xs font-bold text-emerald-700 text-right">
                             </div>
                         </div>
@@ -289,79 +329,81 @@
                 <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3.5">
                     <!-- 1. 单件总成本 -->
                     <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm">
-                        <p class="text-xs font-medium text-slate-500">单件总成本 (拿货+头+尾)</p>
-                        <p id="kpiTotalCostCny" class="text-xl sm:text-2xl font-bold text-slate-900 mt-1">¥75.40</p>
+                        <p class="text-xs font-medium text-slate-500">单件总成本 (含出库仓储)</p>
+                        <p id="kpiTotalCostCny" class="text-xl sm:text-2xl font-bold text-slate-900 mt-1">¥83.32</p>
                         <span id="kpiTotalCostLocal" class="inline-block mt-1.5 px-2 py-0.5 text-[11px] font-semibold rounded-md bg-slate-100 text-slate-600">
-                            折合 $10.47 USD
+                            折合 $11.57 USD
                         </span>
                     </div>
 
                     <!-- 2. 单件毛利 -->
                     <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm">
                         <p class="text-xs font-medium text-slate-500">单件到手毛利</p>
-                        <p id="kpiProfitCny" class="text-xl sm:text-2xl font-bold text-emerald-600 mt-1">¥32.53</p>
+                        <p id="kpiProfitCny" class="text-xl sm:text-2xl font-bold text-emerald-600 mt-1">¥24.61</p>
                         <span id="kpiProfitLocal" class="inline-block mt-1.5 px-2 py-0.5 text-[11px] font-semibold rounded-md bg-emerald-50 text-emerald-700">
-                            折合 $4.52 USD
+                            折合 $3.42 USD
                         </span>
                     </div>
 
                     <!-- 3. 销售利润率 & ROI -->
                     <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm">
                         <p class="text-xs font-medium text-slate-500">销售利润率 (Margin)</p>
-                        <p id="kpiMarginPct" class="text-xl sm:text-2xl font-bold text-slate-900 mt-1">30.14%</p>
+                        <p id="kpiMarginPct" class="text-xl sm:text-2xl font-bold text-slate-900 mt-1">22.80%</p>
                         <span id="kpiRoiBadge" class="inline-block mt-1.5 px-2 py-0.5 text-[11px] font-semibold rounded-md bg-blue-50 text-blue-700">
-                            成本ROI: 43.14%
+                            成本ROI: 29.54%
                         </span>
                     </div>
 
                     <!-- 4. 保本最低申报价 -->
                     <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm">
                         <p class="text-xs font-medium text-slate-500">🛡️ 零利润保本申报底价</p>
-                        <p id="kpiBreakevenLocal" class="text-xl sm:text-2xl font-bold text-slate-800 mt-1">$10.47</p>
+                        <p id="kpiBreakevenLocal" class="text-xl sm:text-2xl font-bold text-slate-800 mt-1">$11.57</p>
                         <span id="kpiBreakevenCny" class="inline-block mt-1.5 px-2 py-0.5 text-[11px] font-semibold rounded-md bg-slate-100 text-slate-600">
-                            人民币 ¥75.40
+                            人民币 ¥83.32
                         </span>
                     </div>
 
                     <!-- 5. 目标利润反推建议申报价 -->
                     <div class="bg-gradient-to-br from-orange-50 to-amber-50/70 rounded-2xl border border-orange-200/90 p-4 shadow-sm col-span-2 sm:col-span-1">
                         <p id="kpiTargetTitle" class="text-xs font-bold text-orange-900">🎯 20%目标利润率建议申报价</p>
-                        <p id="kpiTargetPriceLocal" class="text-xl sm:text-2xl font-bold text-orange-600 mt-1">$13.09</p>
+                        <p id="kpiTargetPriceLocal" class="text-xl sm:text-2xl font-bold text-orange-600 mt-1">$14.47</p>
                         <span id="kpiTargetPriceCny" class="inline-block mt-1.5 px-2 py-0.5 text-[11px] font-semibold rounded-md bg-white/90 text-orange-800 border border-orange-200">
-                            人民币 ¥94.25
+                            人民币 ¥104.15
                         </span>
                     </div>
                 </div>
 
-                <!-- 下半部分：三项成本占比拆解 + 目标利润/买手砍价阶梯表 -->
+                <!-- 下半部分：五成本占比拆解 + 目标利润/买手砍价阶梯表 -->
                 <div class="grid grid-cols-1 xl:grid-cols-12 gap-5">
 
-                    <!-- 左侧：三元成本构成与利润拆解 (5 列) -->
+                    <!-- 左侧：全成本构成与利润拆解 (5 列) -->
                     <div class="xl:col-span-5 bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm flex flex-col justify-between space-y-4">
                         <div>
                             <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                                <span>📊</span> 拿货 + 头程 + 尾程 成本占比分析
+                                <span>📊</span> 采购 + 头程 + 尾程 + 出库 + 仓储 成本占比分析
                             </h3>
-                            <p class="text-xs text-slate-500 mt-0.5">清晰观察物流费用（头程+尾程）与货值成本的轻重比例</p>
+                            <p class="text-xs text-slate-500 mt-0.5">全面把控物流费（头尾）、履约费（出库仓储）与货值采购成本的完整比例</p>
 
                             <!-- 成本内部结构拼接条 -->
                             <div class="mt-4 bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 space-y-2">
                                 <div class="flex justify-between text-xs font-semibold text-slate-700">
                                     <span>📦 单件总成本内部结构</span>
-                                    <span id="logisticsShareText" class="text-indigo-600">物流总占比(头+尾): 53.6%</span>
+                                    <span id="logisticsShareText" class="text-indigo-600">物流+履约总占比: 58.0%</span>
                                 </div>
                                 <div id="stackedCostBar" class="w-full h-3.5 rounded-full overflow-hidden flex bg-slate-200">
-                                    <!-- JS 渲染三色拼接条 -->
+                                    <!-- JS 渲染五色拼接条 -->
                                 </div>
-                                <div class="flex items-center justify-between text-[11px] text-slate-500 pt-1">
-                                    <span class="flex items-center gap-1"><i class="w-2.5 h-2.5 rounded-sm bg-blue-500 inline-block"></i> 拿货成本</span>
-                                    <span class="flex items-center gap-1"><i class="w-2.5 h-2.5 rounded-sm bg-indigo-500 inline-block"></i> 头程单件费</span>
-                                    <span class="flex items-center gap-1"><i class="w-2.5 h-2.5 rounded-sm bg-amber-500 inline-block"></i> 站点尾程费</span>
+                                <div class="flex flex-wrap items-center justify-between gap-y-1 text-[11px] text-slate-500 pt-1">
+                                    <span class="flex items-center gap-1"><i class="w-2.5 h-2.5 rounded-sm bg-blue-500 inline-block"></i> 采购</span>
+                                    <span class="flex items-center gap-1"><i class="w-2.5 h-2.5 rounded-sm bg-indigo-500 inline-block"></i> 头程</span>
+                                    <span class="flex items-center gap-1"><i class="w-2.5 h-2.5 rounded-sm bg-amber-500 inline-block"></i> 尾程</span>
+                                    <span class="flex items-center gap-1"><i class="w-2.5 h-2.5 rounded-sm bg-purple-500 inline-block"></i> 出库</span>
+                                    <span class="flex items-center gap-1"><i class="w-2.5 h-2.5 rounded-sm bg-rose-500 inline-block"></i> 仓储</span>
                                 </div>
                             </div>
 
                             <!-- 各项占收入比进度条 -->
-                            <div id="breakdownBarsWrap" class="mt-4 space-y-3">
+                            <div id="breakdownBarsWrap" class="mt-4 space-y-2.5">
                                 <!-- JS 渲染 -->
                             </div>
                         </div>
@@ -424,11 +466,11 @@
                             </div>
                             <div class="bg-white rounded-lg p-2.5 border border-slate-200/70">
                                 <p class="text-[11px] text-slate-500">预计总毛利 (人民币)</p>
-                                <p id="totalVolumeProfitCny" class="text-base font-bold text-emerald-600 mt-0.5">¥9,759.00</p>
+                                <p id="totalVolumeProfitCny" class="text-base font-bold text-emerald-600 mt-0.5">¥7,383.00</p>
                             </div>
                             <div class="bg-white rounded-lg p-2.5 border border-slate-200/70">
                                 <p class="text-[11px] text-slate-500">备货+物流总垫资 (人民币)</p>
-                                <p id="totalVolumeCapitalCny" class="text-base font-bold text-slate-800 mt-0.5">¥22,620.00</p>
+                                <p id="totalVolumeCapitalCny" class="text-base font-bold text-slate-800 mt-0.5">¥24,996.00</p>
                             </div>
                         </div>
                     </div>
@@ -441,9 +483,9 @@
                 <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm space-y-4">
                     <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
                         <div>
-                            <h2 class="text-base font-bold text-slate-900">📋 批量 SKU 极简核价表（拿货 + 头程 + 站点尾程）</h2>
+                            <h2 class="text-base font-bold text-slate-900">📋 批量 SKU 极简核价表（采购 + 头程 + 尾程 + 出库 + 仓储）</h2>
                             <p class="text-xs text-slate-500 mt-0.5">
-                                可在「单品核价」点击保存加入此表，也可直接下载 CSV 模板批量导入几百个 SKU 一键算清利润与建议申报价。
+                                可在「单品核价」点击保存加入此表，也可直接下载 CSV 模板批量导入几百个 SKU 一键算清包含出库费与仓储费的总成本与建议申报价。
                             </p>
                         </div>
                         <div class="flex flex-wrap items-center gap-2">
@@ -461,7 +503,7 @@
                     </div>
 
                     <div id="batchNoticeBox" class="bg-blue-50/80 border border-blue-200 text-blue-800 rounded-xl px-4 py-2.5 text-xs flex items-center justify-between">
-                        <span>💡 表格支持跨站点混合核算，汇率与目标利润率自动联动左侧配置。点击每行右侧「加载」可回填至单品计算器。数据自动同步 LocalStorage 保存。</span>
+                        <span>💡 表格支持跨站点混合核算，包含采购、头程、尾程、出库费与仓储费。汇率与目标利润率自动联动左侧配置。数据自动同步 LocalStorage 保存。</span>
                     </div>
 
                     <div class="overflow-x-auto border border-slate-200 rounded-xl">
@@ -470,9 +512,11 @@
                                 <tr class="bg-slate-100 text-slate-600 border-b border-slate-200 font-semibold">
                                     <th class="py-2.5 px-3">SKU</th>
                                     <th class="py-2.5 px-2.5">站点</th>
-                                    <th class="py-2.5 px-2.5 text-right">拿货成本(¥)</th>
+                                    <th class="py-2.5 px-2.5 text-right">采购成本(¥)</th>
                                     <th class="py-2.5 px-2.5 text-right">单件头程</th>
-                                    <th class="py-2.5 px-2.5 text-right">站点单件尾程</th>
+                                    <th class="py-2.5 px-2.5 text-right">单件尾程</th>
+                                    <th class="py-2.5 px-2.5 text-right">出库费</th>
+                                    <th class="py-2.5 px-2.5 text-right">仓储费</th>
                                     <th class="py-2.5 px-2.5 text-right">单件总成本(¥)</th>
                                     <th class="py-2.5 px-2.5 text-right">当前申报价</th>
                                     <th class="py-2.5 px-2.5 text-right">运费补贴</th>
@@ -503,7 +547,7 @@
                                 <h2 class="text-base font-bold text-slate-900">🇪🇺 欧洲各国独立平台申报供货价与利润分析</h2>
                             </div>
                             <p class="text-xs text-slate-500 mt-1">
-                                支持针对欧洲各国家单独设置申报供货价（可切换 EUR / CNY）、平台运费补贴（EUR €）与本土尾程费，支持国家列表自定义增删、实时汇率换算、LocalStorage 自动保存及 JSON 配置文件导入导出。
+                                支持针对欧洲各国家单独设置申报供货价（可切换 EUR / CNY）、平台运费补贴（EUR €）、本土尾程费、出库费（EUR €）及仓储费（EUR €），支持国家列表自定义增删、实时汇率换算、LocalStorage 自动保存及 JSON 配置文件导入导出。
                             </p>
                         </div>
                         <div class="flex flex-wrap items-center gap-2">
@@ -555,7 +599,7 @@
                     </div>
 
                     <div id="euNoticeBox" class="bg-indigo-50/80 border border-indigo-200 text-indigo-900 rounded-xl px-4 py-2.5 text-xs flex items-center justify-between">
-                        <span>💡 修改下表中各国家的申报供货价（支持 EUR / CNY）、平台运费补贴 (EUR €) 或尾程费，数据将自动保存至浏览器 LocalStorage 并实时计算毛利与利润率。</span>
+                        <span>💡 修改下表中各国家的申报供货价（支持 EUR / CNY）、平台运费补贴 (EUR €)、尾程费、出库费及仓储费，数据自动保存至 LocalStorage。系统将在折算为人民币后再参与整体利润计算。</span>
                         <span id="euStorageStatus" class="text-[11px] font-semibold text-emerald-600 bg-white px-2 py-0.5 rounded border border-emerald-200">✓ 已开启 LocalStorage 自动同步</span>
                     </div>
 
@@ -565,17 +609,19 @@
                             <thead>
                                 <tr class="bg-slate-100 text-slate-700 border-b border-slate-200 font-semibold">
                                     <th class="py-3 px-3.5">国家 / 站点</th>
-                                    <th class="py-3 px-3">币种设置</th>
-                                    <th class="py-3 px-3">单件尾程费 (EUR €)</th>
-                                    <th class="py-3 px-3">独立平台申报供货价</th>
-                                    <th class="py-3 px-3">平台运费补贴 (EUR €)</th>
-                                    <th class="py-3 px-3 text-right">单件总成本 (CNY)</th>
-                                    <th class="py-3 px-3 text-right">单件毛利 (CNY)</th>
-                                    <th class="py-3 px-3 text-right">单件毛利 (EUR €)</th>
-                                    <th class="py-3 px-3 text-right">销售利润率</th>
-                                    <th class="py-3 px-3 text-right">零利润保本价</th>
-                                    <th class="py-3 px-3 text-center">状态评估</th>
-                                    <th class="py-3 px-3 text-center">操作</th>
+                                    <th class="py-3 px-2.5">币种设置</th>
+                                    <th class="py-3 px-2.5">单件尾程 (EUR €)</th>
+                                    <th class="py-3 px-2.5">出库费 (EUR €)</th>
+                                    <th class="py-3 px-2.5">仓储费 (EUR €)</th>
+                                    <th class="py-3 px-2.5">独立平台申报供货价</th>
+                                    <th class="py-3 px-2.5">平台运费补贴 (EUR €)</th>
+                                    <th class="py-3 px-2.5 text-right">单件总成本 (CNY)</th>
+                                    <th class="py-3 px-2.5 text-right">单件毛利 (CNY)</th>
+                                    <th class="py-3 px-2.5 text-right">单件毛利 (EUR €)</th>
+                                    <th class="py-3 px-2.5 text-right">销售利润率</th>
+                                    <th class="py-3 px-2.5 text-right">保本申报价</th>
+                                    <th class="py-3 px-2.5 text-center">状态评估</th>
+                                    <th class="py-3 px-2.5 text-center">操作</th>
                                 </tr>
                             </thead>
                             <tbody id="euCountryTableBody" class="divide-y divide-slate-100 text-slate-800">
@@ -590,14 +636,17 @@
             <section id="tabPanel-formula" class="hidden space-y-5">
                 <div class="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-sm space-y-5">
                     <div class="border-l-4 border-orange-500 bg-orange-50/70 p-4 rounded-r-xl text-xs sm:text-sm text-slate-700 leading-relaxed">
-                        <b class="text-slate-900">三元极简成本模型设计理念：</b> 将繁杂的仓储、打单、海运拼箱分摊直接收敛为<b>「单件拿货成本 + 单件头程费用 + 对应站点单件尾程费用」</b>三大明确模块，系统在底层自动将不同币种统一折算为人民币（CNY）与站点本币双向输出，既避免汇率换算错乱，又能秒算保本价与目标利润申报价。
+                        <b class="text-slate-900">完整五项成本模型设计理念：</b> 将卖家的运营支出精细化分解为<b>「采购成本 + 头程运费 + 尾程运费 + 出库费 + 仓储费」</b>五大核心模块，系统在底层自动将不同币种按照实时汇率换算，公式满足：
+                        <div class="mt-2 text-orange-900 font-mono font-bold bg-white/80 px-3 py-1.5 rounded-lg border border-orange-200 inline-block">
+                            利润 = 供货价 - (采购成本 + 头程运费 + 尾程运费 + 出库费 + 仓储费) + 运费补贴
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-2.5">
                             <h3 class="text-sm font-bold text-slate-900">1. 正向毛利与利润率公式（统一折算为 CNY）</h3>
                             <ul class="text-xs text-slate-600 space-y-2 leading-relaxed list-disc pl-4">
-                                <li><b>单件总成本 (CNY)</b> = 拿货成本(CNY) + 头程单件费用(折算CNY) + 站点尾程单件费用(折算CNY)</li>
+                                <li><b>单件总成本 (CNY)</b> = 采购成本(CNY) + 头程运费(CNY) + 尾程运费(CNY) + 出库费(CNY) + 仓储费(CNY)</li>
                                 <li><b>单件净收入 (CNY)</b> = [平台申报供货价(折算CNY) + 平台运费补贴(折算CNY)] × (1 - 售后损耗率)</li>
                                 <li><b>单件毛利 (CNY)</b> = 单件净收入(CNY) - 单件总成本(CNY)</li>
                                 <li><b>销售利润率 (Margin)</b> = 单件毛利 ÷ 单件净收入 × 100%</li>
@@ -623,24 +672,24 @@
     <script>
         // 各站点默认汇率与示例尾程参数配置
         const SITE_CONFIGS = {
-            US: { code: "US", name: "美国站", currency: "USD", symbol: "$", rate: 7.20, sampleLastMile: 4.50, sampleDeclare: 14.99 },
-            DE: { code: "DE", name: "欧区站", currency: "EUR", symbol: "€", rate: 7.80, sampleLastMile: 4.20, sampleDeclare: 13.99 },
-            UK: { code: "UK", name: "英国站", currency: "GBP", symbol: "£", rate: 9.10, sampleLastMile: 3.50, sampleDeclare: 11.99 },
-            CA: { code: "CA", name: "加拿大站", currency: "CAD", symbol: "C$", rate: 5.25, sampleLastMile: 6.50, sampleDeclare: 19.99 },
-            AU: { code: "AU", name: "澳洲站", currency: "AUD", symbol: "A$", rate: 4.75, sampleLastMile: 6.80, sampleDeclare: 21.50 },
-            JP: { code: "JP", name: "日本站", currency: "JPY", symbol: "¥", rate: 0.048, sampleLastMile: 650, sampleDeclare: 2280 }
+            US: { code: "US", name: "美国站", currency: "USD", symbol: "$", rate: 7.20, sampleLastMile: 4.50, sampleOutbound: 0.80, sampleStorage: 0.30, sampleDeclare: 14.99 },
+            DE: { code: "DE", name: "欧区站", currency: "EUR", symbol: "€", rate: 7.80, sampleLastMile: 4.20, sampleOutbound: 0.80, sampleStorage: 0.30, sampleDeclare: 13.99 },
+            UK: { code: "UK", name: "英国站", currency: "GBP", symbol: "£", rate: 9.10, sampleLastMile: 3.50, sampleOutbound: 0.70, sampleStorage: 0.25, sampleDeclare: 11.99 },
+            CA: { code: "CA", name: "加拿大站", currency: "CAD", symbol: "C$", rate: 5.25, sampleLastMile: 6.50, sampleOutbound: 1.00, sampleStorage: 0.40, sampleDeclare: 19.99 },
+            AU: { code: "AU", name: "澳洲站", currency: "AUD", symbol: "A$", rate: 4.75, sampleLastMile: 6.80, sampleOutbound: 1.10, sampleStorage: 0.45, sampleDeclare: 21.50 },
+            JP: { code: "JP", name: "日本站", currency: "JPY", symbol: "¥", rate: 0.048, sampleLastMile: 650, sampleOutbound: 120, sampleStorage: 45, sampleDeclare: 2280 }
         };
 
-        // 欧洲各国默认供货价与尾程费配置列表
+        // 欧洲各国默认供货价与各成本配置列表
         const DEFAULT_EU_COUNTRY_CONFIGS = [
-            { code: "DE", name: "德国 🇩🇪", currency: "EUR", declareCurr: "EUR", lastMileCost: 4.20, declarePrice: 13.99, subsidy: 0.00 },
-            { code: "FR", name: "法国 🇫🇷", currency: "EUR", declareCurr: "EUR", lastMileCost: 4.50, declarePrice: 14.50, subsidy: 0.00 },
-            { code: "IT", name: "意大利 🇮🇹", currency: "EUR", declareCurr: "EUR", lastMileCost: 4.80, declarePrice: 14.99, subsidy: 0.00 },
-            { code: "ES", name: "西班牙 🇪🇸", currency: "EUR", declareCurr: "EUR", lastMileCost: 4.60, declarePrice: 14.20, subsidy: 0.00 },
-            { code: "NL", name: "荷兰 🇳🇱", currency: "EUR", declareCurr: "EUR", lastMileCost: 4.10, declarePrice: 13.80, subsidy: 0.00 },
-            { code: "PL", name: "波兰 🇵🇱", currency: "EUR", declareCurr: "EUR", lastMileCost: 3.90, declarePrice: 12.99, subsidy: 0.00 },
-            { code: "BE", name: "比利时 🇧🇪", currency: "EUR", declareCurr: "EUR", lastMileCost: 4.30, declarePrice: 14.00, subsidy: 0.00 },
-            { code: "AT", name: "奥地利 🇦🇹", currency: "EUR", declareCurr: "EUR", lastMileCost: 4.40, declarePrice: 14.50, subsidy: 0.00 }
+            { code: "DE", name: "德国 🇩🇪", currency: "EUR", declareCurr: "EUR", lastMileCost: 4.20, outboundCost: 0.80, storageCost: 0.30, declarePrice: 13.99, subsidy: 0.00 },
+            { code: "FR", name: "法国 🇫🇷", currency: "EUR", declareCurr: "EUR", lastMileCost: 4.50, outboundCost: 0.80, storageCost: 0.30, declarePrice: 14.50, subsidy: 0.00 },
+            { code: "IT", name: "意大利 🇮🇹", currency: "EUR", declareCurr: "EUR", lastMileCost: 4.80, outboundCost: 0.85, storageCost: 0.35, declarePrice: 14.99, subsidy: 0.00 },
+            { code: "ES", name: "西班牙 🇪🇸", currency: "EUR", declareCurr: "EUR", lastMileCost: 4.60, outboundCost: 0.80, storageCost: 0.30, declarePrice: 14.20, subsidy: 0.00 },
+            { code: "NL", name: "荷兰 🇳🇱", currency: "EUR", declareCurr: "EUR", lastMileCost: 4.10, outboundCost: 0.75, storageCost: 0.28, declarePrice: 13.80, subsidy: 0.00 },
+            { code: "PL", name: "波兰 🇵🇱", currency: "EUR", declareCurr: "EUR", lastMileCost: 3.90, outboundCost: 0.70, storageCost: 0.25, declarePrice: 12.99, subsidy: 0.00 },
+            { code: "BE", name: "比利时 🇧🇪", currency: "EUR", declareCurr: "EUR", lastMileCost: 4.30, outboundCost: 0.80, storageCost: 0.30, declarePrice: 14.00, subsidy: 0.00 },
+            { code: "AT", name: "奥地利 🇦🇹", currency: "EUR", declareCurr: "EUR", lastMileCost: 4.40, outboundCost: 0.80, storageCost: 0.30, declarePrice: 14.50, subsidy: 0.00 }
         ];
 
         const EU_STORAGE_KEY = "temu_eu_country_prices";
@@ -660,6 +709,10 @@
                 firstLegCurr: "CNY",
                 lastMileCost: 4.50,
                 lastMileCurr: "LOCAL",
+                outboundCost: 0.80,
+                outboundCurr: "LOCAL",
+                storageCost: 0.30,
+                storageCurr: "LOCAL",
                 declarePrice: 14.99,
                 declareCurr: "LOCAL",
                 subsidy: 0.00
@@ -672,6 +725,10 @@
                 firstLegCurr: "CNY",
                 lastMileCost: 4.20,
                 lastMileCurr: "LOCAL",
+                outboundCost: 0.80,
+                outboundCurr: "LOCAL",
+                storageCost: 0.30,
+                storageCurr: "LOCAL",
                 declarePrice: 13.50,
                 declareCurr: "LOCAL",
                 subsidy: 0.00
@@ -684,6 +741,10 @@
                 firstLegCurr: "CNY",
                 lastMileCost: 3.40,
                 lastMileCurr: "LOCAL",
+                outboundCost: 0.70,
+                outboundCurr: "LOCAL",
+                storageCost: 0.25,
+                storageCurr: "LOCAL",
                 declarePrice: 10.99,
                 declareCurr: "LOCAL",
                 subsidy: 1.50
@@ -702,7 +763,22 @@
                 if (stored) {
                     const parsed = JSON.parse(stored);
                     if (Array.isArray(parsed) && parsed.length > 0) {
-                        batchItems = parsed;
+                        batchItems = parsed.map(item => ({
+                            sku: item.sku || "SKU-UNKNOWN",
+                            siteCode: item.siteCode || "US",
+                            purchaseCostCny: parseFloat(item.purchaseCostCny) || 0,
+                            firstLegCost: parseFloat(item.firstLegCost) || 0,
+                            firstLegCurr: item.firstLegCurr || "CNY",
+                            lastMileCost: parseFloat(item.lastMileCost) || 0,
+                            lastMileCurr: item.lastMileCurr || "LOCAL",
+                            outboundCost: parseFloat(item.outboundCost) || 0,
+                            outboundCurr: item.outboundCurr || "LOCAL",
+                            storageCost: parseFloat(item.storageCost) || 0,
+                            storageCurr: item.storageCurr || "LOCAL",
+                            declarePrice: parseFloat(item.declarePrice) || 0,
+                            declareCurr: item.declareCurr || "LOCAL",
+                            subsidy: parseFloat(item.subsidy) || 0
+                        }));
                         return;
                     }
                 }
@@ -724,11 +800,12 @@
          * 币种转换辅助函数：将输入金额统一折算为 CNY
          */
         function toCny(amount, currFlag, rate) {
-            return currFlag === "CNY" ? amount : amount * rate;
+            return currFlag === "CNY" ? (amount || 0) : (amount || 0) * rate;
         }
 
         /**
-         * 核心三元成本与利润精算引擎（对应 Python 方案中的 TemuSemiManagedCalculator）
+         * 核心五项成本与利润精算引擎（支持 采购、头程、尾程、出库费、仓储费）
+         * 公式：利润 = 供货价 - (采购成本 + 头程运费 + 尾程运费 + 出库费 + 仓储费) + 运费补贴
          */
         function calculateItemProfit(params) {
             const {
@@ -736,6 +813,8 @@
                 purchaseCostCny,
                 firstLegCost, firstLegCurr,
                 lastMileCost, lastMileCurr,
+                outboundCost, outboundCurr,
+                storageCost, storageCurr,
                 declarePrice, declareCurr,
                 subsidy,
                 lossRate, targetMargin
@@ -743,12 +822,14 @@
 
             const safeRate = Math.max(rate, 0.00001);
 
-            // 1. 三项核心成本统一折算为 CNY
-            const cPurchaseCny = purchaseCostCny;
+            // 1. 五项核心成本统一折算为 CNY
+            const cPurchaseCny = purchaseCostCny || 0;
             const cFirstCny = toCny(firstLegCost, firstLegCurr, safeRate);
             const cLastCny = toCny(lastMileCost, lastMileCurr, safeRate);
+            const cOutboundCny = toCny(outboundCost, outboundCurr, safeRate);
+            const cStorageCny = toCny(storageCost, storageCurr, safeRate);
 
-            const totalCostCny = cPurchaseCny + cFirstCny + cLastCny;
+            const totalCostCny = cPurchaseCny + cFirstCny + cLastCny + cOutboundCny + cStorageCny;
             const totalCostLocal = totalCostCny / safeRate;
 
             // 2. 收入项折算为 CNY
@@ -781,6 +862,8 @@
                 cPurchaseCny,
                 cFirstCny,
                 cLastCny,
+                cOutboundCny,
+                cStorageCny,
                 totalCostCny,
                 totalCostLocal,
                 declareCny,
@@ -817,7 +900,7 @@
             });
         }
 
-        // 切换站点时更新默认汇率
+        // 切换站点时更新默认汇率与参考参数
         function onSiteChange() {
             const code = document.getElementById('siteSelect').value;
             const cfg = SITE_CONFIGS[code];
@@ -833,6 +916,8 @@
             document.getElementById('targetMarginSlider').value = 20;
             document.getElementById('lossRateSlider').value = 0;
             document.getElementById('lastMileCostInput').value = cfg.sampleLastMile;
+            document.getElementById('outboundCostInput').value = cfg.sampleOutbound || 0.80;
+            document.getElementById('storageCostInput').value = cfg.sampleStorage || 0.30;
             document.getElementById('declarePriceInput').value = cfg.sampleDeclare;
             recalcAll();
         }
@@ -879,7 +964,7 @@
             document.getElementById('headerSummary').textContent =
                 `当前站点：${siteCfg.name} (${siteCfg.code}) ｜ 站点本币：${curr} (${sym}) ｜ 核算汇率：1 ${curr} = ${rate} CNY`;
 
-            // 读取三项成本与申报价
+            // 读取各项成本与申报价
             const sku = document.getElementById('skuNameInput').value.trim() || "SKU-001";
             const purchaseCostCny = parseFloat(document.getElementById('purchaseCostInput').value) || 0;
 
@@ -888,6 +973,12 @@
 
             const lastMileCost = parseFloat(document.getElementById('lastMileCostInput').value) || 0;
             const lastMileCurr = document.getElementById('lastMileCurrSelect').value;
+
+            const outboundCost = parseFloat(document.getElementById('outboundCostInput').value) || 0;
+            const outboundCurr = document.getElementById('outboundCurrSelect').value;
+
+            const storageCost = parseFloat(document.getElementById('storageCostInput').value) || 0;
+            const storageCurr = document.getElementById('storageCurrSelect').value;
 
             const declarePrice = parseFloat(document.getElementById('declarePriceInput').value) || 0;
             const declareCurr = document.getElementById('declareCurrSelect').value;
@@ -902,6 +993,10 @@
                 firstLegCurr,
                 lastMileCost,
                 lastMileCurr,
+                outboundCost,
+                outboundCurr,
+                storageCost,
+                storageCurr,
                 declarePrice,
                 declareCurr,
                 subsidy,
@@ -920,6 +1015,14 @@
             document.getElementById('lastMileSubText').innerHTML = lastMileCurr === "LOCAL"
                 ? `折合人民币：<b class="text-slate-700">¥${res.cLastCny.toFixed(2)} CNY</b>`
                 : `折合站点本币：<b class="text-slate-700">${sym}${(res.cLastCny / rate).toFixed(2)} ${curr}</b>`;
+
+            document.getElementById('outboundSubText').innerHTML = outboundCurr === "LOCAL"
+                ? `折合人民币：<b class="text-slate-700">¥${res.cOutboundCny.toFixed(2)} CNY</b>`
+                : `折合站点本币：<b class="text-slate-700">${sym}${(res.cOutboundCny / rate).toFixed(2)} ${curr}</b>`;
+
+            document.getElementById('storageSubText').innerHTML = storageCurr === "LOCAL"
+                ? `折合人民币：<b class="text-slate-700">¥${res.cStorageCny.toFixed(2)} CNY</b>`
+                : `折合站点本币：<b class="text-slate-700">${sym}${(res.cStorageCny / rate).toFixed(2)} ${curr}</b>`;
 
             // 更新 5 张核心 KPI 卡片
             document.getElementById('kpiTotalCostCny').textContent = `¥${res.totalCostCny.toFixed(2)}`;
@@ -948,7 +1051,7 @@
             document.getElementById('kpiTargetPriceLocal').textContent = `${sym}${res.targetDeclareLocal.toFixed(2)}`;
             document.getElementById('kpiTargetPriceCny').textContent = `人民币 ¥${res.targetDeclareCny.toFixed(2)}`;
 
-            // 渲染三项成本占比分析
+            // 渲染全成本占比分析
             renderCostStructure(res, sym, curr);
 
             // 渲染右侧买手砍价阶梯沙盘
@@ -991,6 +1094,8 @@
                             currency: item.currency || "EUR",
                             declareCurr: item.declareCurr || "EUR",
                             lastMileCost: parseFloat(item.lastMileCost) || 0,
+                            outboundCost: parseFloat(item.outboundCost) || 0,
+                            storageCost: parseFloat(item.storageCost) || 0,
                             declarePrice: parseFloat(item.declarePrice) || 0,
                             subsidy: parseFloat(item.subsidy) || 0
                         }));
@@ -1059,7 +1164,6 @@
                 currency = parts[2] || "EUR";
             }
 
-            // 检查是否重复添加
             if (euCountryPrices.some(c => c.code === code)) {
                 alert(`国家 [${name}] 已存在于列表中，无需重复添加！`);
                 return;
@@ -1071,6 +1175,8 @@
                 currency,
                 declareCurr: "EUR",
                 lastMileCost: 4.50,
+                outboundCost: 0.80,
+                storageCost: 0.30,
                 declarePrice: 14.50,
                 subsidy: 0.00
             });
@@ -1097,7 +1203,7 @@
          */
         function exportEuPricesJson() {
             const dataToExport = {
-                version: "2.0",
+                version: "2.1",
                 exportedAt: new Date().toISOString(),
                 euExchangeRate: euExchangeRate,
                 euCountryPrices: euCountryPrices
@@ -1138,13 +1244,14 @@
                     }
 
                     if (items && items.length > 0) {
-                        // 校验并清洗数据
                         const validItems = items.map(it => ({
                             code: (it.code || "DE").toString().toUpperCase(),
                             name: it.name || it.code || "未知国家",
                             currency: (it.currency || "EUR").toString().toUpperCase(),
                             declareCurr: (it.declareCurr || "EUR").toString().toUpperCase() === "CNY" ? "CNY" : "EUR",
                             lastMileCost: Math.max(0, parseFloat(it.lastMileCost) || 0),
+                            outboundCost: Math.max(0, parseFloat(it.outboundCost) || 0),
+                            storageCost: Math.max(0, parseFloat(it.storageCost) || 0),
                             declarePrice: Math.max(0, parseFloat(it.declarePrice) || 0),
                             subsidy: Math.max(0, parseFloat(it.subsidy) || 0)
                         }));
@@ -1157,7 +1264,7 @@
                         const box = document.getElementById("euNoticeBox");
                         if (box) {
                             box.className = "bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl px-4 py-2.5 text-xs flex items-center justify-between";
-                            box.innerHTML = `<span>✅ 成功导入 <b>${validItems.length}</b> 个欧洲国家的独立供货价与尾程配置！</span><span id="euStorageStatus" class="text-[11px] font-semibold text-emerald-600 bg-white px-2 py-0.5 rounded border border-emerald-200">✓ 已同步 LocalStorage</span>`;
+                            box.innerHTML = `<span>✅ 成功导入 <b>${validItems.length}</b> 个欧洲国家的独立供货价与成本配置！</span><span id="euStorageStatus" class="text-[11px] font-semibold text-emerald-600 bg-white px-2 py-0.5 rounded border border-emerald-200">✓ 已同步 LocalStorage</span>`;
                         }
                     } else {
                         alert("导入的 JSON 文件格式不正确，未匹配到有效的欧洲国家配置数据。");
@@ -1189,7 +1296,7 @@
         /**
          * 渲染欧洲各国独立表单与利润计算对比表
          * 支持在打字时就地更新 DOM 节点，避免整行重绘导致输入焦点丢失
-         * 统一运费补贴为 EUR (€)：若申报价切换为 CNY，补贴自动按照汇率换算后参与计算
+         * 自动对齐币种规则：若申报价切换为 CNY，本地各项费用（尾程、出库、仓储、补贴）自动按欧区汇率折算为 CNY 后参与计算
          */
         function renderEuCountryTable(forceRebuild = false) {
             const tbody = document.getElementById("euCountryTableBody");
@@ -1199,7 +1306,6 @@
             const targetMarginPct = parseFloat(document.getElementById('targetMarginSlider').value) || 20;
             const lossRatePct = parseFloat(document.getElementById('lossRateSlider').value) || 0;
 
-            // 读取单品页面的拿货成本与头程费用作为基准硬成本
             const purchaseCostCny = parseFloat(document.getElementById('purchaseCostInput').value) || 0;
             const firstLegCost = parseFloat(document.getElementById('firstLegCostInput').value) || 0;
             const firstLegCurr = document.getElementById('firstLegCurrSelect').value;
@@ -1209,7 +1315,11 @@
                     const declareCurr = c.declareCurr || "EUR";
                     const isCny = declareCurr === "CNY";
 
-                    // 运费补贴固定为 EUR €：若用户以 CNY 申报，则补贴按 eurRate 折算为 CNY 传入引擎
+                    // 欧洲模块中的 尾程费、出库费、仓储费、运费补贴 默认以 EUR € 计费
+                    // 若用户选择 CNY 进行整体结算，各项本地费用乘以 eurRate 传入引擎参与统一折算
+                    const effectiveLastMile = isCny ? (c.lastMileCost || 0) * eurRate : (c.lastMileCost || 0);
+                    const effectiveOutbound = isCny ? (c.outboundCost || 0) * eurRate : (c.outboundCost || 0);
+                    const effectiveStorage = isCny ? (c.storageCost || 0) * eurRate : (c.storageCost || 0);
                     const effectiveSubsidy = isCny ? (c.subsidy || 0) * eurRate : (c.subsidy || 0);
 
                     const res = calculateItemProfit({
@@ -1219,8 +1329,12 @@
                         purchaseCostCny,
                         firstLegCost,
                         firstLegCurr,
-                        lastMileCost: c.lastMileCost,
-                        lastMileCurr: "LOCAL",
+                        lastMileCost: effectiveLastMile,
+                        lastMileCurr: isCny ? "CNY" : "LOCAL",
+                        outboundCost: effectiveOutbound,
+                        outboundCurr: isCny ? "CNY" : "LOCAL",
+                        storageCost: effectiveStorage,
+                        storageCurr: isCny ? "CNY" : "LOCAL",
                         declarePrice: c.declarePrice,
                         declareCurr: isCny ? "CNY" : "LOCAL",
                         subsidy: effectiveSubsidy,
@@ -1248,40 +1362,52 @@
                     return `
                         <tr data-idx="${idx}" class="hover:bg-slate-50 transition">
                             <td class="py-2.5 px-3.5 font-bold text-slate-900">${c.name}</td>
-                            <td class="py-2.5 px-3">
+                            <td class="py-2.5 px-2.5">
                                 <select onchange="updateEuCountryField(${idx}, 'declareCurr', this.value)" class="text-[11px] font-semibold px-2 py-1 rounded bg-slate-100 text-slate-700 border border-slate-200 focus:outline-none cursor-pointer">
                                     <option value="EUR" ${!isCny ? 'selected' : ''}>EUR 欧元</option>
                                     <option value="CNY" ${isCny ? 'selected' : ''}>CNY 人民币</option>
                                 </select>
                             </td>
-                            <td class="py-2.5 px-3">
-                                <div class="relative w-28">
-                                    <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-slate-400 font-semibold">€</span>
-                                    <input type="number" data-field="lastMileCost" value="${c.lastMileCost.toFixed(2)}" step="0.1" min="0" oninput="updateEuCountryField(${idx}, 'lastMileCost', this.value)" class="w-full pl-7 pr-2 py-1 text-xs font-bold text-slate-800 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <td class="py-2.5 px-2.5">
+                                <div class="relative w-24">
+                                    <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-slate-400 font-semibold text-xs">€</span>
+                                    <input type="number" data-field="lastMileCost" value="${c.lastMileCost.toFixed(2)}" step="0.1" min="0" oninput="updateEuCountryField(${idx}, 'lastMileCost', this.value)" class="w-full pl-6 pr-1.5 py-1 text-xs font-bold text-slate-800 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                                 </div>
                             </td>
-                            <td class="py-2.5 px-3">
+                            <td class="py-2.5 px-2.5">
+                                <div class="relative w-24">
+                                    <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-purple-500 font-semibold text-xs">€</span>
+                                    <input type="number" data-field="outboundCost" value="${(c.outboundCost || 0).toFixed(2)}" step="0.1" min="0" oninput="updateEuCountryField(${idx}, 'outboundCost', this.value)" class="w-full pl-6 pr-1.5 py-1 text-xs font-bold text-purple-900 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                </div>
+                            </td>
+                            <td class="py-2.5 px-2.5">
+                                <div class="relative w-24">
+                                    <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-rose-500 font-semibold text-xs">€</span>
+                                    <input type="number" data-field="storageCost" value="${(c.storageCost || 0).toFixed(2)}" step="0.1" min="0" oninput="updateEuCountryField(${idx}, 'storageCost', this.value)" class="w-full pl-6 pr-1.5 py-1 text-xs font-bold text-rose-900 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                </div>
+                            </td>
+                            <td class="py-2.5 px-2.5">
                                 <div>
-                                    <div class="relative w-36">
-                                        <span data-field="declareSymbol" class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-indigo-600 font-bold">${currSymbol}</span>
-                                        <input type="number" data-field="declarePrice" value="${c.declarePrice.toFixed(2)}" step="0.5" min="0.01" oninput="updateEuCountryField(${idx}, 'declarePrice', this.value)" class="w-full pl-7 pr-2 py-1 text-xs font-bold text-indigo-700 bg-indigo-50/50 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                    <div class="relative w-32">
+                                        <span data-field="declareSymbol" class="absolute inset-y-0 left-0 pl-2 flex items-center text-indigo-600 font-bold text-xs">${currSymbol}</span>
+                                        <input type="number" data-field="declarePrice" value="${c.declarePrice.toFixed(2)}" step="0.5" min="0.01" oninput="updateEuCountryField(${idx}, 'declarePrice', this.value)" class="w-full pl-6 pr-1.5 py-1 text-xs font-bold text-indigo-700 bg-indigo-50/50 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                                     </div>
                                     <div data-field="convertedSubtext" class="text-[10px] text-slate-400 mt-0.5 font-medium">${convertedSubtext}</div>
                                 </div>
                             </td>
-                            <td class="py-2.5 px-3">
-                                <div class="relative w-28">
-                                    <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-emerald-600 font-bold">€</span>
-                                    <input type="number" data-field="subsidy" value="${(c.subsidy || 0).toFixed(2)}" step="0.5" min="0" oninput="updateEuCountryField(${idx}, 'subsidy', this.value)" class="w-full pl-7 pr-2 py-1 text-xs font-bold text-emerald-700 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <td class="py-2.5 px-2.5">
+                                <div class="relative w-24">
+                                    <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-emerald-600 font-bold text-xs">€</span>
+                                    <input type="number" data-field="subsidy" value="${(c.subsidy || 0).toFixed(2)}" step="0.5" min="0" oninput="updateEuCountryField(${idx}, 'subsidy', this.value)" class="w-full pl-6 pr-1.5 py-1 text-xs font-bold text-emerald-700 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                                 </div>
                             </td>
-                            <td data-field="totalCostCny" class="py-2.5 px-3 text-right font-semibold text-slate-800">¥${res.totalCostCny.toFixed(2)}</td>
-                            <td data-field="profitCny" class="py-2.5 px-3 text-right ${profitClass}">¥${res.profitCny.toFixed(2)}</td>
-                            <td data-field="profitLocal" class="py-2.5 px-3 text-right ${profitClass}">€${res.profitLocal.toFixed(2)}</td>
-                            <td data-field="marginPct" class="py-2.5 px-3 text-right font-bold text-slate-900">${res.marginPct.toFixed(2)}%</td>
-                            <td data-field="breakeven" class="py-2.5 px-3 text-right text-slate-700 font-semibold">€${res.breakevenDeclareLocal.toFixed(2)}</td>
-                            <td data-field="statusBadge" class="py-2.5 px-3 text-center">${statusBadge}</td>
-                            <td class="py-2.5 px-3 text-center">
+                            <td data-field="totalCostCny" class="py-2.5 px-2.5 text-right font-semibold text-slate-800">¥${res.totalCostCny.toFixed(2)}</td>
+                            <td data-field="profitCny" class="py-2.5 px-2.5 text-right ${profitClass}">¥${res.profitCny.toFixed(2)}</td>
+                            <td data-field="profitLocal" class="py-2.5 px-2.5 text-right ${profitClass}">€${res.profitLocal.toFixed(2)}</td>
+                            <td data-field="marginPct" class="py-2.5 px-2.5 text-right font-bold text-slate-900">${res.marginPct.toFixed(2)}%</td>
+                            <td data-field="breakeven" class="py-2.5 px-2.5 text-right text-slate-700 font-semibold">€${res.breakevenDeclareLocal.toFixed(2)}</td>
+                            <td data-field="statusBadge" class="py-2.5 px-2.5 text-center">${statusBadge}</td>
+                            <td class="py-2.5 px-2.5 text-center">
                                 <button onclick="removeEuCountry(${idx})" class="px-2 py-1 rounded bg-slate-100 hover:bg-red-50 hover:text-red-600 text-slate-500 font-semibold transition text-xs">
                                     🗑️ 删除
                                 </button>
@@ -1298,6 +1424,9 @@
                     const declareCurr = c.declareCurr || "EUR";
                     const isCny = declareCurr === "CNY";
 
+                    const effectiveLastMile = isCny ? (c.lastMileCost || 0) * eurRate : (c.lastMileCost || 0);
+                    const effectiveOutbound = isCny ? (c.outboundCost || 0) * eurRate : (c.outboundCost || 0);
+                    const effectiveStorage = isCny ? (c.storageCost || 0) * eurRate : (c.storageCost || 0);
                     const effectiveSubsidy = isCny ? (c.subsidy || 0) * eurRate : (c.subsidy || 0);
 
                     const res = calculateItemProfit({
@@ -1307,8 +1436,12 @@
                         purchaseCostCny,
                         firstLegCost,
                         firstLegCurr,
-                        lastMileCost: c.lastMileCost,
-                        lastMileCurr: "LOCAL",
+                        lastMileCost: effectiveLastMile,
+                        lastMileCurr: isCny ? "CNY" : "LOCAL",
+                        outboundCost: effectiveOutbound,
+                        outboundCurr: isCny ? "CNY" : "LOCAL",
+                        storageCost: effectiveStorage,
+                        storageCurr: isCny ? "CNY" : "LOCAL",
                         declarePrice: c.declarePrice,
                         declareCurr: isCny ? "CNY" : "LOCAL",
                         subsidy: effectiveSubsidy,
@@ -1327,7 +1460,7 @@
                         statusBadge = '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-100 text-red-700">🔴 亏损</span>';
                     }
 
-                    const profitClass = res.profitCny >= 0 ? "py-2.5 px-3 text-right text-emerald-700 font-bold" : "py-2.5 px-3 text-right text-red-600 font-bold";
+                    const profitClass = res.profitCny >= 0 ? "py-2.5 px-2.5 text-right text-emerald-700 font-bold" : "py-2.5 px-2.5 text-right text-red-600 font-bold";
                     const currSymbol = isCny ? "¥" : "€";
                     const convertedSubtext = isCny
                         ? `折合 €${(c.declarePrice / eurRate).toFixed(2)}`
@@ -1363,10 +1496,18 @@
                     const badgeEl = row.querySelector('[data-field="statusBadge"]');
                     if (badgeEl) badgeEl.innerHTML = statusBadge;
 
-                    // 若输入框未在获得焦点编辑状态，刷新其输入框显示值
+                    // 若输入框未在获得焦点编辑状态，刷新显示值
                     const lastMileInput = row.querySelector('[data-field="lastMileCost"]');
                     if (lastMileInput && document.activeElement !== lastMileInput) {
                         lastMileInput.value = c.lastMileCost.toFixed(2);
+                    }
+                    const outboundInput = row.querySelector('[data-field="outboundCost"]');
+                    if (outboundInput && document.activeElement !== outboundInput) {
+                        outboundInput.value = (c.outboundCost || 0).toFixed(2);
+                    }
+                    const storageInput = row.querySelector('[data-field="storageCost"]');
+                    if (storageInput && document.activeElement !== storageInput) {
+                        storageInput.value = (c.storageCost || 0).toFixed(2);
                     }
                     const declareInput = row.querySelector('[data-field="declarePrice"]');
                     if (declareInput && document.activeElement !== declareInput) {
@@ -1385,22 +1526,28 @@
             const pShare = (res.cPurchaseCny / safeTotalCost) * 100;
             const fShare = (res.cFirstCny / safeTotalCost) * 100;
             const lShare = (res.cLastCny / safeTotalCost) * 100;
+            const oShare = (res.cOutboundCny / safeTotalCost) * 100;
+            const sShare = (res.cStorageCny / safeTotalCost) * 100;
 
             document.getElementById('logisticsShareText').textContent =
-                `物流总占比(头+尾): ${(fShare + lShare).toFixed(1)}%`;
+                `物流+履约总占比: ${(fShare + lShare + oShare + sShare).toFixed(1)}%`;
 
             document.getElementById('stackedCostBar').innerHTML = `
-                <div class="bg-blue-500 h-full transition-all duration-300" style="width: ${pShare}%" title="拿货成本 ${pShare.toFixed(1)}%"></div>
-                <div class="bg-indigo-500 h-full transition-all duration-300" style="width: ${fShare}%" title="头程费用 ${fShare.toFixed(1)}%"></div>
-                <div class="bg-amber-500 h-full transition-all duration-300" style="width: ${lShare}%" title="尾程费用 ${lShare.toFixed(1)}%"></div>
+                <div class="bg-blue-500 h-full transition-all duration-300" style="width: ${pShare}%" title="采购成本 ${pShare.toFixed(1)}%"></div>
+                <div class="bg-indigo-500 h-full transition-all duration-300" style="width: ${fShare}%" title="头程运费 ${fShare.toFixed(1)}%"></div>
+                <div class="bg-amber-500 h-full transition-all duration-300" style="width: ${lShare}%" title="尾程运费 ${lShare.toFixed(1)}%"></div>
+                <div class="bg-purple-500 h-full transition-all duration-300" style="width: ${oShare}%" title="出库费用 ${oShare.toFixed(1)}%"></div>
+                <div class="bg-rose-500 h-full transition-all duration-300" style="width: ${sShare}%" title="仓储费用 ${sShare.toFixed(1)}%"></div>
             `;
 
             const safeRev = Math.max(res.netRevCny, 0.01);
             const bars = [
-                { name: "1. 单个货物拿货成本", cny: res.cPurchaseCny, costShare: pShare, revShare: (res.cPurchaseCny / safeRev) * 100, color: "bg-blue-500" },
-                { name: "2. 头程单个费用", cny: res.cFirstCny, costShare: fShare, revShare: (res.cFirstCny / safeRev) * 100, color: "bg-indigo-500" },
-                { name: "3. 对应站点单个尾程费用", cny: res.cLastCny, costShare: lShare, revShare: (res.cLastCny / safeRev) * 100, color: "bg-amber-500" },
-                { name: "4. 单件到手毛利", cny: Math.max(0, res.profitCny), costShare: null, revShare: Math.max(0, res.marginPct), color: "bg-emerald-500" }
+                { name: "1. 单件采购成本", cny: res.cPurchaseCny, revShare: (res.cPurchaseCny / safeRev) * 100, color: "bg-blue-500" },
+                { name: "2. 头程单件运费", cny: res.cFirstCny, revShare: (res.cFirstCny / safeRev) * 100, color: "bg-indigo-500" },
+                { name: "3. 站点单件尾程费", cny: res.cLastCny, revShare: (res.cLastCny / safeRev) * 100, color: "bg-amber-500" },
+                { name: "4. 单件出库费", cny: res.cOutboundCny, revShare: (res.cOutboundCny / safeRev) * 100, color: "bg-purple-500" },
+                { name: "5. 单件仓储费", cny: res.cStorageCny, revShare: (res.cStorageCny / safeRev) * 100, color: "bg-rose-500" },
+                { name: "6. 单件到手毛利", cny: Math.max(0, res.profitCny), revShare: Math.max(0, res.marginPct), color: "bg-emerald-500" }
             ];
 
             document.getElementById('breakdownBarsWrap').innerHTML = bars.map(b => {
@@ -1411,7 +1558,7 @@
                             <span class="font-medium text-slate-700">${b.name}</span>
                             <span class="font-semibold text-slate-900">¥${b.cny.toFixed(2)} (占收入 ${b.revShare.toFixed(1)}%)</span>
                         </div>
-                        <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                             <div class="${b.color} h-full rounded-full transition-all duration-300" style="width: ${widthPct}%"></div>
                         </div>
                     </div>
@@ -1419,9 +1566,11 @@
             }).join('');
 
             const rows = [
-                { label: "1. 单件拿货成本", cny: res.cPurchaseCny, share: `${pShare.toFixed(1)}%` },
-                { label: "2. 头程单个费用", cny: res.cFirstCny, share: `${fShare.toFixed(1)}%` },
+                { label: "1. 单件采购成本", cny: res.cPurchaseCny, share: `${pShare.toFixed(1)}%` },
+                { label: "2. 头程单件运费", cny: res.cFirstCny, share: `${fShare.toFixed(1)}%` },
                 { label: "3. 站点单件尾程费", cny: res.cLastCny, share: `${lShare.toFixed(1)}%` },
+                { label: "4. 单件出库费", cny: res.cOutboundCny, share: `${oShare.toFixed(1)}%` },
+                { label: "5. 单件仓储费", cny: res.cStorageCny, share: `${sShare.toFixed(1)}%` },
                 { label: "合计单件总成本", cny: res.totalCostCny, share: "100.0%", bold: true }
             ];
 
@@ -1485,6 +1634,10 @@
             const firstLegCurr = document.getElementById('firstLegCurrSelect').value;
             const lastMileCost = parseFloat(document.getElementById('lastMileCostInput').value) || 0;
             const lastMileCurr = document.getElementById('lastMileCurrSelect').value;
+            const outboundCost = parseFloat(document.getElementById('outboundCostInput').value) || 0;
+            const outboundCurr = document.getElementById('outboundCurrSelect').value;
+            const storageCost = parseFloat(document.getElementById('storageCostInput').value) || 0;
+            const storageCurr = document.getElementById('storageCurrSelect').value;
             const declarePrice = parseFloat(document.getElementById('declarePriceInput').value) || 0;
             const declareCurr = document.getElementById('declareCurrSelect').value;
             const subsidy = parseFloat(document.getElementById('subsidyInput').value) || 0;
@@ -1493,6 +1646,8 @@
                 sku, siteCode, purchaseCostCny,
                 firstLegCost, firstLegCurr,
                 lastMileCost, lastMileCurr,
+                outboundCost, outboundCurr,
+                storageCost, storageCurr,
                 declarePrice, declareCurr,
                 subsidy
             });
@@ -1513,6 +1668,10 @@
             document.getElementById('firstLegCurrSelect').value = item.firstLegCurr;
             document.getElementById('lastMileCostInput').value = item.lastMileCost;
             document.getElementById('lastMileCurrSelect').value = item.lastMileCurr;
+            document.getElementById('outboundCostInput').value = item.outboundCost || 0;
+            document.getElementById('outboundCurrSelect').value = item.outboundCurr || "LOCAL";
+            document.getElementById('storageCostInput').value = item.storageCost || 0;
+            document.getElementById('storageCurrSelect').value = item.storageCurr || "LOCAL";
             document.getElementById('declarePriceInput').value = item.declarePrice;
             document.getElementById('declareCurrSelect').value = item.declareCurr;
             document.getElementById('subsidyInput').value = item.subsidy || 0;
@@ -1549,6 +1708,8 @@
                 const profitClass = r.profitCny >= 0 ? "text-emerald-700 font-bold" : "text-red-600 font-bold";
                 const firstText = r.raw.firstLegCurr === "CNY" ? `¥${r.raw.firstLegCost.toFixed(2)}` : `${sym}${r.raw.firstLegCost.toFixed(2)}`;
                 const lastText = r.raw.lastMileCurr === "CNY" ? `¥${r.raw.lastMileCost.toFixed(2)}` : `${sym}${r.raw.lastMileCost.toFixed(2)}`;
+                const outboundText = r.raw.outboundCurr === "CNY" ? `¥${(r.raw.outboundCost || 0).toFixed(2)}` : `${sym}${(r.raw.outboundCost || 0).toFixed(2)}`;
+                const storageText = r.raw.storageCurr === "CNY" ? `¥${(r.raw.storageCost || 0).toFixed(2)}` : `${sym}${(r.raw.storageCost || 0).toFixed(2)}`;
                 const decText = r.raw.declareCurr === "CNY" ? `¥${r.raw.declarePrice.toFixed(2)}` : `${sym}${r.raw.declarePrice.toFixed(2)}`;
                 const subText = r.raw.subsidy > 0 ? `${sym}${r.raw.subsidy.toFixed(2)}` : "-";
 
@@ -1559,6 +1720,8 @@
                         <td class="py-2.5 px-2.5 text-right">¥${r.cPurchaseCny.toFixed(2)}</td>
                         <td class="py-2.5 px-2.5 text-right">${firstText}</td>
                         <td class="py-2.5 px-2.5 text-right">${lastText}</td>
+                        <td class="py-2.5 px-2.5 text-right text-purple-900 font-medium">${outboundText}</td>
+                        <td class="py-2.5 px-2.5 text-right text-rose-900 font-medium">${storageText}</td>
                         <td class="py-2.5 px-2.5 text-right font-semibold">¥${r.totalCostCny.toFixed(2)}</td>
                         <td class="py-2.5 px-2.5 text-right font-semibold">${decText}</td>
                         <td class="py-2.5 px-2.5 text-right text-slate-500">${subText}</td>
@@ -1577,16 +1740,16 @@
             }).join('');
         }
 
-        // 下载精简版 CSV 模板
+        // 下载含全成本字段的 CSV 模板
         function downloadBatchTemplate() {
-            const headers = ["SKU,站点代码(US/DE/UK/CA/AU/JP),拿货成本(CNY),头程单件费用,头程币种(CNY或LOCAL),站点单件尾程费,尾程币种(LOCAL或CNY),平台申报供货价,申报币种(LOCAL或CNY),平台运费补贴"];
+            const headers = ["SKU,站点代码(US/DE/UK/CA/AU/JP),采购成本(CNY),头程单件费用,头程币种(CNY或LOCAL),站点单件尾程费,尾程币种(LOCAL或CNY),单件出库费,出库币种(LOCAL或CNY),单件仓储费,仓储币种(LOCAL或CNY),平台申报供货价,申报币种(LOCAL或CNY),平台运费补贴"];
             const samples = [
-                "HOME-CHAIR-01,US,35.0,8.0,CNY,4.50,LOCAL,14.99,LOCAL,0.00",
-                "KITCHEN-RACK-02,DE,28.0,6.5,CNY,4.20,LOCAL,13.50,LOCAL,0.00",
-                "PET-BED-03,UK,22.0,5.0,CNY,3.40,LOCAL,10.99,LOCAL,1.50"
+                "HOME-CHAIR-01,US,35.0,8.0,CNY,4.50,LOCAL,0.80,LOCAL,0.30,14.99,LOCAL,0.00",
+                "KITCHEN-RACK-02,DE,28.0,6.5,CNY,4.20,LOCAL,0.80,LOCAL,0.30,13.50,LOCAL,0.00",
+                "PET-BED-03,UK,22.0,5.0,CNY,3.40,LOCAL,0.70,LOCAL,0.25,10.99,LOCAL,1.50"
             ];
             const csv = "\uFEFF" + headers.concat(samples).join("\n");
-            triggerDownload(csv, "temu_semi_3cost_template.csv");
+            triggerDownload(csv, "temu_semi_5cost_template.csv");
         }
 
         // 上传 CSV 批量解析
@@ -1602,6 +1765,25 @@
                     const cols = lines[i].split(',');
                     if (cols.length < 8) continue;
                     const siteCode = (cols[1] || "US").trim().toUpperCase();
+
+                    // 兼容旧格式（10列）与新格式（14列）
+                    let outboundCost = 0, outboundCurr = "LOCAL", storageCost = 0, storageCurr = "LOCAL";
+                    let declarePrice = 0, declareCurr = "LOCAL", subsidy = 0;
+
+                    if (cols.length >= 14) {
+                        outboundCost = parseFloat(cols[7]) || 0;
+                        outboundCurr = (cols[8] || "LOCAL").trim().toUpperCase();
+                        storageCost = parseFloat(cols[9]) || 0;
+                        storageCurr = (cols[10] || "LOCAL").trim().toUpperCase();
+                        declarePrice = parseFloat(cols[11]) || 0;
+                        declareCurr = (cols[12] || "LOCAL").trim().toUpperCase();
+                        subsidy = parseFloat(cols[13]) || 0;
+                    } else {
+                        declarePrice = parseFloat(cols[7]) || 0;
+                        declareCurr = (cols[8] || "LOCAL").trim().toUpperCase();
+                        subsidy = parseFloat(cols[9]) || 0;
+                    }
+
                     parsed.push({
                         sku: cols[0].trim(),
                         siteCode: SITE_CONFIGS[siteCode] ? siteCode : "US",
@@ -1610,9 +1792,10 @@
                         firstLegCurr: (cols[4] || "CNY").trim().toUpperCase(),
                         lastMileCost: parseFloat(cols[5]) || 0,
                         lastMileCurr: (cols[6] || "LOCAL").trim().toUpperCase(),
-                        declarePrice: parseFloat(cols[7]) || 0,
-                        declareCurr: (cols[8] || "LOCAL").trim().toUpperCase(),
-                        subsidy: parseFloat(cols[9]) || 0
+                        outboundCost, outboundCurr,
+                        storageCost, storageCurr,
+                        declarePrice, declareCurr,
+                        subsidy
                     });
                 }
                 if (parsed.length > 0) {
@@ -1620,7 +1803,7 @@
                     saveBatchItemsToStorage();
                     const box = document.getElementById('batchNoticeBox');
                     box.className = "bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl px-4 py-2.5 text-xs flex items-center justify-between";
-                    box.innerHTML = `<span>✅ 已成功导入 <b>${parsed.length}</b> 个 SKU 的三项成本数据并完成利润核算！</span>`;
+                    box.innerHTML = `<span>✅ 已成功导入 <b>${parsed.length}</b> 个 SKU 的完整成本数据并完成利润核算！</span>`;
                     recalcAll();
                 }
             };
@@ -1631,7 +1814,7 @@
         function exportBatchCsv() {
             if (!latestBatchResults.length) return;
             const headers = [
-                "SKU,站点,核算汇率,拿货成本(CNY),头程费用(折算CNY),站点尾程费(折算CNY),单件总成本(CNY),单件总成本(本币),当前申报价(本币),当前申报价(CNY),单件毛利(CNY),单件毛利(本币),销售利润率(%),成本ROI(%),保本申报价(本币),目标利润建议申报价(本币),目标利润建议申报价(CNY)"
+                "SKU,站点,核算汇率,采购成本(CNY),头程运费(折算CNY),站点尾程费(折算CNY),出库费(折算CNY),仓储费(折算CNY),单件总成本(CNY),单件总成本(本币),当前申报价(本币),当前申报价(CNY),单件毛利(CNY),单件毛利(本币),销售利润率(%),成本ROI(%),保本申报价(本币),目标利润建议申报价(本币),目标利润建议申报价(CNY)"
             ];
             const rows = latestBatchResults.map(r => [
                 r.sku,
@@ -1640,6 +1823,8 @@
                 r.cPurchaseCny.toFixed(2),
                 r.cFirstCny.toFixed(2),
                 r.cLastCny.toFixed(2),
+                r.cOutboundCny.toFixed(2),
+                r.cStorageCny.toFixed(2),
                 r.totalCostCny.toFixed(2),
                 r.totalCostLocal.toFixed(2),
                 r.declareLocal.toFixed(2),
