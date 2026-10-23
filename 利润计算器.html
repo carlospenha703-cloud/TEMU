@@ -536,10 +536,113 @@
                         </table>
                     </div>
                 </div>
+
             </section>
 
             <!-- ==================== 选项卡 3：欧洲各国独立平台申报供货价设置 ==================== -->
             <section id="tabPanel-eu" class="hidden space-y-5">
+                <!-- ⚡ 批量应用数值到多国 弹窗配置面板 -->
+                <div id="euBatchModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-xl w-full p-6 space-y-5 transform transition-all">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-base">⚡</span>
+                                <h3 class="text-base font-bold text-slate-900">批量应用数值到多国</h3>
+                            </div>
+                            <button onclick="closeBatchApplyModal()" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center text-lg font-bold">✕</button>
+                        </div>
+
+                        <!-- 配置项 1: 选择要覆盖的字段与数值 -->
+                        <div class="space-y-3">
+                            <label class="block text-xs font-bold text-slate-800">1. 选择要批量覆盖的字段与填入数值 (EUR €)</label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                                <!-- 申报供货价 -->
+                                <div class="p-2.5 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between gap-2">
+                                    <label class="flex items-center gap-1.5 font-semibold text-slate-700 cursor-pointer">
+                                        <input type="checkbox" id="chkBatchDeclare" class="w-4 h-4 rounded text-amber-600 focus:ring-amber-500">
+                                        <span>申报供货价</span>
+                                    </label>
+                                    <div class="flex items-center gap-1 w-24 bg-white border border-slate-300 rounded-lg px-2 py-1">
+                                        <span class="text-slate-400 font-bold">€</span>
+                                        <input type="number" id="batchValDeclare" value="14.50" step="0.5" min="0" class="w-full text-xs font-bold text-slate-900 focus:outline-none">
+                                    </div>
+                                </div>
+
+                                <!-- 尾程运费 -->
+                                <div class="p-2.5 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between gap-2">
+                                    <label class="flex items-center gap-1.5 font-semibold text-slate-700 cursor-pointer">
+                                        <input type="checkbox" id="chkBatchLastMile" class="w-4 h-4 rounded text-amber-600 focus:ring-amber-500">
+                                        <span>尾程运费</span>
+                                    </label>
+                                    <div class="flex items-center gap-1 w-24 bg-white border border-slate-300 rounded-lg px-2 py-1">
+                                        <span class="text-slate-400 font-bold">€</span>
+                                        <input type="number" id="batchValLastMile" value="4.20" step="0.1" min="0" class="w-full text-xs font-bold text-slate-900 focus:outline-none">
+                                    </div>
+                                </div>
+
+                                <!-- 出库费 -->
+                                <div class="p-2.5 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between gap-2">
+                                    <label class="flex items-center gap-1.5 font-semibold text-slate-700 cursor-pointer">
+                                        <input type="checkbox" id="chkBatchOutbound" class="w-4 h-4 rounded text-amber-600 focus:ring-amber-500">
+                                        <span>出库费</span>
+                                    </label>
+                                    <div class="flex items-center gap-1 w-24 bg-white border border-slate-300 rounded-lg px-2 py-1">
+                                        <span class="text-purple-500 font-bold">€</span>
+                                        <input type="number" id="batchValOutbound" value="0.80" step="0.1" min="0" class="w-full text-xs font-bold text-purple-900 focus:outline-none">
+                                    </div>
+                                </div>
+
+                                <!-- 仓储费 -->
+                                <div class="p-2.5 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between gap-2">
+                                    <label class="flex items-center gap-1.5 font-semibold text-slate-700 cursor-pointer">
+                                        <input type="checkbox" id="chkBatchStorage" class="w-4 h-4 rounded text-amber-600 focus:ring-amber-500">
+                                        <span>仓储费</span>
+                                    </label>
+                                    <div class="flex items-center gap-1 w-24 bg-white border border-slate-300 rounded-lg px-2 py-1">
+                                        <span class="text-rose-500 font-bold">€</span>
+                                        <input type="number" id="batchValStorage" value="0.30" step="0.05" min="0" class="w-full text-xs font-bold text-rose-900 focus:outline-none">
+                                    </div>
+                                </div>
+
+                                <!-- 平台运费补贴 -->
+                                <div class="p-2.5 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between gap-2 col-span-1 sm:col-span-2">
+                                    <label class="flex items-center gap-1.5 font-semibold text-slate-700 cursor-pointer">
+                                        <input type="checkbox" id="chkBatchSubsidy" class="w-4 h-4 rounded text-amber-600 focus:ring-amber-500">
+                                        <span>平台运费补贴</span>
+                                    </label>
+                                    <div class="flex items-center gap-1 w-24 bg-white border border-slate-300 rounded-lg px-2 py-1">
+                                        <span class="text-emerald-600 font-bold">€</span>
+                                        <input type="number" id="batchValSubsidy" value="0.00" step="0.5" min="0" class="w-full text-xs font-bold text-emerald-700 focus:outline-none">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 配置项 2: 目标国家选择 -->
+                        <div class="space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-bold text-slate-800">2. 选择要应用的目标国家</label>
+                                <div class="flex items-center gap-2 text-xs">
+                                    <button onclick="selectAllBatchCountries(true)" class="text-indigo-600 hover:text-indigo-800 font-semibold underline">全选</button>
+                                    <span class="text-slate-300">|</span>
+                                    <button onclick="invertBatchCountriesSelection()" class="text-indigo-600 hover:text-indigo-800 font-semibold underline">反选</button>
+                                </div>
+                            </div>
+
+                            <div id="batchCountryChecklist" class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200 max-h-40 overflow-y-auto text-xs">
+                                <!-- JS 动态构建国家多选列表 -->
+                            </div>
+                        </div>
+
+                        <!-- 底部按钮 -->
+                        <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                            <button onclick="closeBatchApplyModal()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">取消</button>
+                            <button onclick="applyBatchValuesToCountries()" class="px-5 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white transition shadow-md flex items-center gap-1">
+                                <span>⚡</span> 确认一键应用
+                            </button>
+                        </div>
+                    </div>
+                </div>
                 <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm space-y-5">
                     <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
                         <div>
@@ -586,6 +689,9 @@
                         </div>
 
                         <div class="flex items-center gap-2">
+                            <button onclick="openBatchApplyModal()" class="px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-sm transition flex items-center gap-1">
+                                <span>⚡</span> 批量应用数值到多国
+                            </button>
                             <select id="addCountrySelect" class="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                                 <option value="DE|德国 🇩🇪|EUR">德国 🇩🇪 (DE)</option>
                                 <option value="FR|法国 🇫🇷|EUR">法国 🇫🇷 (FR)</option>
@@ -1211,6 +1317,92 @@
                     renderEuCountryTable(true);
                     recalcAll();
                 }
+            }
+        }
+
+        /**
+         * ⚡ 批量应用数值到多国：弹窗与一键覆盖逻辑
+         */
+        function openBatchApplyModal() {
+            const modal = document.getElementById("euBatchModal");
+            const checklist = document.getElementById("batchCountryChecklist");
+            if (!modal || !checklist) return;
+
+            checklist.innerHTML = euCountryPrices.map(c => `
+                <label class="flex items-center gap-1.5 p-1 rounded hover:bg-white cursor-pointer select-none">
+                    <input type="checkbox" class="eu-batch-country-chk w-3.5 h-3.5 rounded text-indigo-600 focus:ring-indigo-500" data-code="${c.code}" checked>
+                    <span class="font-medium text-slate-800">${c.name}</span>
+                </label>
+            `).join('');
+
+            modal.classList.remove("hidden");
+        }
+
+        function closeBatchApplyModal() {
+            const modal = document.getElementById("euBatchModal");
+            if (modal) modal.classList.add("hidden");
+        }
+
+        function selectAllBatchCountries(selectState) {
+            const chks = document.querySelectorAll(".eu-batch-country-chk");
+            chks.forEach(chk => chk.checked = !!selectState);
+        }
+
+        function invertBatchCountriesSelection() {
+            const chks = document.querySelectorAll(".eu-batch-country-chk");
+            chks.forEach(chk => chk.checked = !chk.checked);
+        }
+
+        function applyBatchValuesToCountries() {
+            const chkDeclare = document.getElementById("chkBatchDeclare").checked;
+            const chkLastMile = document.getElementById("chkBatchLastMile").checked;
+            const chkOutbound = document.getElementById("chkBatchOutbound").checked;
+            const chkStorage = document.getElementById("chkBatchStorage").checked;
+            const chkSubsidy = document.getElementById("chkBatchSubsidy").checked;
+
+            if (!chkDeclare && !chkLastMile && !chkOutbound && !chkStorage && !chkSubsidy) {
+                alert("请至少选择一个要批量覆盖的字段（如：申报供货价、尾程运费、出库费、仓储费或运费补贴）！");
+                return;
+            }
+
+            const countryChks = document.querySelectorAll(".eu-batch-country-chk");
+            const targetCodes = [];
+            countryChks.forEach(chk => {
+                if (chk.checked) targetCodes.push(chk.getAttribute("data-code"));
+            });
+
+            if (targetCodes.length === 0) {
+                alert("请至少勾选一个目标应用国家！");
+                return;
+            }
+
+            const valDeclare = parseFloat(document.getElementById("batchValDeclare").value) || 0;
+            const valLastMile = parseFloat(document.getElementById("batchValLastMile").value) || 0;
+            const valOutbound = parseFloat(document.getElementById("batchValOutbound").value) || 0;
+            const valStorage = parseFloat(document.getElementById("batchValStorage").value) || 0;
+            const valSubsidy = parseFloat(document.getElementById("batchValSubsidy").value) || 0;
+
+            let updatedCount = 0;
+            euCountryPrices.forEach(c => {
+                if (targetCodes.includes(c.code)) {
+                    if (chkDeclare) c.declarePrice = valDeclare;
+                    if (chkLastMile) c.lastMileCost = valLastMile;
+                    if (chkOutbound) c.outboundCost = valOutbound;
+                    if (chkStorage) c.storageCost = valStorage;
+                    if (chkSubsidy) c.subsidy = valSubsidy;
+                    updatedCount++;
+                }
+            });
+
+            closeBatchApplyModal();
+            saveEuPricesToStorage();
+            renderEuCountryTable(true);
+            recalcAll();
+
+            const box = document.getElementById("euNoticeBox");
+            if (box) {
+                box.className = "bg-amber-50 border border-amber-200 text-amber-900 rounded-xl px-4 py-2.5 text-xs flex items-center justify-between";
+                box.innerHTML = `<span>⚡ 已成功将所选数值一键覆盖应用至 <b>${updatedCount}</b> 个目标国家！所有利润与同步项目已自动刷新。</span><span id="euStorageStatus" class="text-[11px] font-semibold text-emerald-600 bg-white px-2 py-0.5 rounded border border-emerald-200">✓ 已同步 LocalStorage</span>`;
             }
         }
 
