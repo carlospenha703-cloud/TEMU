@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TEMU半托管极简利润计算器 - 免安装网页版</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -555,12 +556,15 @@
                             <button onclick="saveEuProject()" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition shadow-sm flex items-center gap-1">
                                 <span>💾</span> 保存为项目
                             </button>
-                            <button onclick="exportEuPricesJson()" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-900 text-white transition shadow-sm flex items-center gap-1">
-                                <span>📥</span> 导出 JSON
+                            <button onclick="downloadEuPricesExcelTemplate()" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition shadow-sm flex items-center gap-1">
+                                <span>📥</span> 下载 Excel 模板
                             </button>
-                            <label class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer shadow-sm flex items-center gap-1">
-                                <span>📤</span> 导入 JSON
-                                <input type="file" id="euJsonUploadInput" accept=".json" onchange="handleEuPricesJsonUpload(event)" class="hidden">
+                            <button onclick="exportEuPricesExcel()" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-900 text-white transition shadow-sm flex items-center gap-1">
+                                <span>📊</span> 导出 Excel (.xlsx)
+                            </button>
+                            <label class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition cursor-pointer shadow-sm flex items-center gap-1">
+                                <span>📤</span> 导入 Excel (.xlsx)
+                                <input type="file" id="euExcelUploadInput" accept=".xlsx, .xls" onchange="handleEuPricesExcelUpload(event)" class="hidden">
                             </label>
                             <button onclick="resetEuPricesToDefault()" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-600 transition">
                                 🔄 重置默认
@@ -603,7 +607,7 @@
                     </div>
 
                     <div id="euNoticeBox" class="bg-indigo-50/80 border border-indigo-200 text-indigo-900 rounded-xl px-4 py-2.5 text-xs flex items-center justify-between">
-                        <span>💡 修改下表中各国家的申报供货价（支持 EUR / CNY）、平台运费补贴 (EUR €)、尾程费、出库费及仓储费。点击上方「保存为项目」可将数据实时同调合并至「批量 SKU 清单」。</span>
+                        <span>💡 修改下表中各国家的申报供货价（支持 EUR / CNY）、平台运费补贴 (EUR €)、尾程费、出库费及仓储费。可通过「导出 Excel」导出当前多国配置，或点击「下载 Excel 模板」获得标准表格进行填写与上传导入。</span>
                         <span id="euStorageStatus" class="text-[11px] font-semibold text-emerald-600 bg-white px-2 py-0.5 rounded border border-emerald-200">✓ 已开启 LocalStorage 自动同步</span>
                     </div>
 
@@ -1211,83 +1215,185 @@
         }
 
         /**
-         * 欧洲供货价 JSON 数据的导出与导入
+         * 欧洲供货价 Excel (.xlsx) 数据的导出、导入与模板下载
          */
-        function exportEuPricesJson() {
-            const dataToExport = {
-                version: "2.1",
-                exportedAt: new Date().toISOString(),
-                euExchangeRate: euExchangeRate,
-                euCountryPrices: euCountryPrices
-            };
-            const jsonStr = JSON.stringify(dataToExport, null, 2);
-            const blob = new Blob([jsonStr], { type: "application/json;charset=utf-8;" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `temu_eu_country_prices_${new Date().toISOString().slice(0, 10)}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+        function exportEuPricesExcel() {
+            if (typeof XLSX === 'undefined') {
+                alert("SheetJS 库未加载完成，请检查网络或刷新页面。");
+                return;
+            }
+            const projName = document.getElementById('euProjectNameInput') ? document.getElementById('euProjectNameInput').value.trim() : "HOME-CHAIR-01";
+            const eurRate = Math.max(0.0001, euExchangeRate);
+            const targetMarginPct = parseFloat(document.getElementById('targetMarginSlider').value) || 20;
+            const lossRatePct = parseFloat(document.getElementById('lossRateSlider').value) || 0;
+
+            const purchaseCostCny = parseFloat(document.getElementById('purchaseCostInput').value) || 0;
+            const firstLegCost = parseFloat(document.getElementById('firstLegCostInput').value) || 0;
+            const firstLegCurr = document.getElementById('firstLegCurrSelect').value;
+
+            const exportRows = euCountryPrices.map(c => {
+                const declareCurr = c.declareCurr || "EUR";
+                const isCny = declareCurr === "CNY";
+
+                const effectiveLastMile = isCny ? (c.lastMileCost || 0) * eurRate : (c.lastMileCost || 0);
+                const effectiveOutbound = isCny ? (c.outboundCost || 0) * eurRate : (c.outboundCost || 0);
+                const effectiveStorage = isCny ? (c.storageCost || 0) * eurRate : (c.storageCost || 0);
+                const effectiveSubsidy = isCny ? (c.subsidy || 0) * eurRate : (c.subsidy || 0);
+
+                const res = calculateItemProfit({
+                    sku: `EU-${c.code}`,
+                    siteCode: "DE",
+                    rate: eurRate,
+                    purchaseCostCny,
+                    firstLegCost,
+                    firstLegCurr,
+                    lastMileCost: effectiveLastMile,
+                    lastMileCurr: isCny ? "CNY" : "LOCAL",
+                    outboundCost: effectiveOutbound,
+                    outboundCurr: isCny ? "CNY" : "LOCAL",
+                    storageCost: effectiveStorage,
+                    storageCurr: isCny ? "CNY" : "LOCAL",
+                    declarePrice: c.declarePrice,
+                    declareCurr: isCny ? "CNY" : "LOCAL",
+                    subsidy: effectiveSubsidy,
+                    lossRate: lossRatePct / 100.0,
+                    targetMargin: targetMarginPct / 100.0
+                });
+
+                return {
+                    "项目名称": projName,
+                    "核算汇率(1 EUR=X CNY)": eurRate,
+                    "国家二字码": c.code,
+                    "国家名称": c.name,
+                    "币种": c.currency || "EUR",
+                    "申报币种": declareCurr,
+                    "申报供货价": c.declarePrice,
+                    "采购成本(CNY)": purchaseCostCny,
+                    "头程运费": firstLegCost,
+                    "头程币种": firstLegCurr,
+                    "尾程运费(EUR)": c.lastMileCost,
+                    "出库费(EUR)": c.outboundCost || 0,
+                    "仓储费(EUR)": c.storageCost || 0,
+                    "运费补贴(EUR)": c.subsidy || 0,
+                    "单件到手毛利(CNY)": parseFloat(res.profitCny.toFixed(2)),
+                    "单件到手毛利(EUR)": parseFloat(res.profitLocal.toFixed(2)),
+                    "销售利润率(%)": parseFloat(res.marginPct.toFixed(2))
+                };
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(exportRows);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "欧洲各国供货价与利润分析");
+            XLSX.writeFile(workbook, `temu_eu_country_prices_${projName}_${new Date().toISOString().slice(0, 10)}.xlsx`);
         }
 
-        function handleEuPricesJsonUpload(event) {
+        function downloadEuPricesExcelTemplate() {
+            if (typeof XLSX === 'undefined') {
+                alert("SheetJS 库未加载完成，请检查网络或刷新页面。");
+                return;
+            }
+            const templateRows = DEFAULT_EU_COUNTRY_CONFIGS.map(c => ({
+                "项目名称": "HOME-CHAIR-01",
+                "核算汇率(1 EUR=X CNY)": 7.80,
+                "国家二字码": c.code,
+                "国家名称": c.name,
+                "币种": c.currency || "EUR",
+                "申报币种": c.declareCurr || "EUR",
+                "申报供货价": c.declarePrice,
+                "采购成本(CNY)": 35.00,
+                "头程运费": 8.00,
+                "头程币种": "CNY",
+                "尾程运费(EUR)": c.lastMileCost,
+                "出库费(EUR)": c.outboundCost,
+                "仓储费(EUR)": c.storageCost,
+                "运费补贴(EUR)": c.subsidy
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(templateRows);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "欧洲供货价导入模板");
+            XLSX.writeFile(workbook, "temu_eu_prices_template.xlsx");
+        }
+
+        function handleEuPricesExcelUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
+
+            if (typeof XLSX === 'undefined') {
+                alert("SheetJS 库未加载完成，无法解析 Excel 文件。");
+                return;
+            }
 
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
-                    const parsed = JSON.parse(e.target.result);
-                    let items = null;
-                    if (Array.isArray(parsed)) {
-                        items = parsed;
-                    } else if (parsed && Array.isArray(parsed.euCountryPrices)) {
-                        items = parsed.euCountryPrices;
-                        if (parsed.euExchangeRate) {
-                            const rateVal = parseFloat(parsed.euExchangeRate);
-                            if (rateVal > 0) {
-                                euExchangeRate = rateVal;
-                                const rateInput = document.getElementById('euExchangeRateInput');
-                                if (rateInput) rateInput.value = euExchangeRate.toFixed(2);
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const jsonRows = XLSX.utils.sheet_to_json(worksheet);
+
+                    if (jsonRows && jsonRows.length > 0) {
+                        const parsedItems = [];
+                        let parsedRate = euExchangeRate;
+
+                        jsonRows.forEach(row => {
+                            const code = (row["国家二字码"] || row["国家代码"] || row["code"] || "DE").toString().trim().toUpperCase();
+                            const name = (row["国家名称"] || row["name"] || code).toString().trim();
+                            const currency = (row["币种"] || row["currency"] || "EUR").toString().trim().toUpperCase();
+                            const declareCurrRaw = (row["申报币种"] || row["declareCurr"] || "EUR").toString().trim().toUpperCase();
+                            const declareCurr = declareCurrRaw === "CNY" ? "CNY" : "EUR";
+
+                            const lastMileCost = Math.max(0, parseFloat(row["尾程运费(EUR)"] || row["尾程运费"] || row["lastMileCost"]) || 0);
+                            const outboundCost = Math.max(0, parseFloat(row["出库费(EUR)"] || row["出库费"] || row["outboundCost"]) || 0);
+                            const storageCost = Math.max(0, parseFloat(row["仓储费(EUR)"] || row["仓储费"] || row["storageCost"]) || 0);
+                            const declarePrice = Math.max(0, parseFloat(row["申报供货价"] || row["declarePrice"]) || 0);
+                            const subsidy = Math.max(0, parseFloat(row["运费补贴(EUR)"] || row["运费补贴"] || row["subsidy"]) || 0);
+
+                            const rowRate = parseFloat(row["核算汇率(1 EUR=X CNY)"] || row["核算汇率"] || row["euExchangeRate"]);
+                            if (rowRate > 0) parsedRate = rowRate;
+
+                            parsedItems.push({
+                                code,
+                                name,
+                                currency,
+                                declareCurr,
+                                lastMileCost,
+                                outboundCost,
+                                storageCost,
+                                declarePrice,
+                                subsidy
+                            });
+                        });
+
+                        if (parsedItems.length > 0) {
+                            euCountryPrices = parsedItems;
+                            euExchangeRate = parsedRate;
+                            const rateInput = document.getElementById('euExchangeRateInput');
+                            if (rateInput) rateInput.value = euExchangeRate.toFixed(2);
+
+                            saveEuPricesToStorage();
+                            renderEuCountryTable(true);
+                            recalcAll();
+
+                            const box = document.getElementById("euNoticeBox");
+                            if (box) {
+                                box.className = "bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl px-4 py-2.5 text-xs flex items-center justify-between";
+                                box.innerHTML = `<span>✅ 成功从 Excel (.xlsx) 导入 <b>${parsedItems.length}</b> 个欧洲国家的独立配置数据！</span><span id="euStorageStatus" class="text-[11px] font-semibold text-emerald-600 bg-white px-2 py-0.5 rounded border border-emerald-200">✓ 已同步 LocalStorage</span>`;
                             }
-                        }
-                    }
-
-                    if (items && items.length > 0) {
-                        const validItems = items.map(it => ({
-                            code: (it.code || "DE").toString().toUpperCase(),
-                            name: it.name || it.code || "未知国家",
-                            currency: (it.currency || "EUR").toString().toUpperCase(),
-                            declareCurr: (it.declareCurr || "EUR").toString().toUpperCase() === "CNY" ? "CNY" : "EUR",
-                            lastMileCost: Math.max(0, parseFloat(it.lastMileCost) || 0),
-                            outboundCost: Math.max(0, parseFloat(it.outboundCost) || 0),
-                            storageCost: Math.max(0, parseFloat(it.storageCost) || 0),
-                            declarePrice: Math.max(0, parseFloat(it.declarePrice) || 0),
-                            subsidy: Math.max(0, parseFloat(it.subsidy) || 0)
-                        }));
-
-                        euCountryPrices = validItems;
-                        saveEuPricesToStorage();
-                        renderEuCountryTable(true);
-                        recalcAll();
-
-                        const box = document.getElementById("euNoticeBox");
-                        if (box) {
-                            box.className = "bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl px-4 py-2.5 text-xs flex items-center justify-between";
-                            box.innerHTML = `<span>✅ 成功导入 <b>${validItems.length}</b> 个欧洲国家的独立供货价与成本配置！</span><span id="euStorageStatus" class="text-[11px] font-semibold text-emerald-600 bg-white px-2 py-0.5 rounded border border-emerald-200">✓ 已同步 LocalStorage</span>`;
+                        } else {
+                            alert("导入的 Excel 文件未读取到有效国家数据，请检查文件格式。");
                         }
                     } else {
-                        alert("导入的 JSON 文件格式不正确，未匹配到有效的欧洲国家配置数据。");
+                        alert("导入的 Excel 工作表为空。");
                     }
                 } catch (err) {
-                    alert("JSON 解析失败，请检查文件内容是否为有效的 JSON 格式。");
-                    console.error("JSON 解析错误:", err);
+                    alert("解析 Excel 文件失败，请确保上传的是标准的 .xlsx 文件。");
+                    console.error("Excel 解析错误:", err);
                 }
                 event.target.value = "";
             };
-            reader.readAsText(file, "UTF-8");
+            reader.readAsArrayBuffer(file);
         }
 
         function updateEuCountryField(index, field, value) {
